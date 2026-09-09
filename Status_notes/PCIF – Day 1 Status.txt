@@ -1,0 +1,239 @@
+# PCIF – Day 1 Status
+
+## Completed Today
+
+* Project scope frozen.
+* `PROJECT_SCOPE_FREEZE.md` added.
+* Initial frontend skeleton created.
+* Initial backend skeleton created.
+* Placeholder modules created for:
+
+  * Nutrition AI
+  * Mental Wellness AI
+  * CCEE
+  * Patient APIs
+  * Doctor APIs
+  * MongoDB
+* Documentation structure created.
+* Required dependencies installed.
+* Frontend build verified successfully.
+* Backend initialization verified successfully.
+* No actual AI logic, CCEE extraction logic, database storage, or doctor-side AI has been implemented yet.
+
+## Current Architecture
+
+Patient
+→ Nutrition AI / Mental Wellness AI
+→ CCEE
+→ Minimal structured clinical JSON
+→ Shared patient database
+→ Doctor retrieves longitudinal context
+→ Doctor-side AI assists
+→ Doctor makes final decision
+
+## Important Files to Understand Tomorrow
+
+1. `backend/main.py`
+2. `backend/app/api/nutrition.py`
+3. `ccee/engine.py`
+4. `ccee/schema.py`
+5. `frontend/src/App.jsx`
+
+## Things NOT Required to Study Yet
+
+* `__init__.py`
+* CSS internals
+* Vite internals
+* Gitignore details
+* Doctor-side files
+* MongoDB implementation
+* All React components
+* Placeholder APIs
+
+## Next Development Decision
+
+Before Day 2 implementation, decide:
+
+1. Which LLM/API will power the conversational agents.
+2. Exact behaviour of the Nutrition AI.
+3. Exact behaviour of the Mental Wellness AI.
+4. Safety boundaries of both agents.
+5. What information each agent should gather.
+6. When conversation data should be sent to CCEE.
+
+## Day 1 Status
+
+**COMPLETE**
+
+Tomorrow begins with understanding the important files and designing the behaviour of the two patient-side AI systems before any new implementation.
+
+-----------------------------------------------------------------
+
+# PCIF Day 1 Execution Walkthrough - Project Setup & Skeleton Verification
+
+## Summary of Accomplishments
+The foundational setup for **PCIF – Patient Context Intelligence Framework** has been successfully established for Day 1. The workspace has been populated with a modular architecture, backend FastAPI placeholders, CCEE engine stub, MongoDB manager stub, React Vite frontend application, environment configurations, and documentation specifications in strict accordance with `docs/PROJECT_SCOPE_FREEZE.md`.
+
+---
+
+## Verification & Validation Results
+
+### 1. Backend Verification
+- **Command Executed**: `py -c "from backend.main import app; print('Backend app initialized successfully:', app.title)"`
+- **Result**: `SUCCESS`
+- **Console Output**:
+  ```text
+  [Database Placeholder] Configured for URI 'mongodb://localhost:27017', DB 'pcif_database'. Connection inactive.
+  Backend app initialized successfully: PCIF - Patient Context Intelligence Framework
+  ```
+
+### 2. Frontend Build Verification
+- **Command Executed**: `npm run build` inside `frontend/`
+- **Result**: `SUCCESS`
+- **Console Output**:
+  ```text
+  > pcif-frontend@1.0.0 build
+  > npx --no-install vite build
+
+  vite v5.4.21 building for production...
+  ✓ 51 modules transformed.
+  dist/index.html                  0.75 kB │ gzip:  0.42 kB
+  dist/assets/index-BqE--wWl.css  10.23 kB │ gzip:  2.62 kB
+  dist/assets/index-DYb12Jvj.js  224.28 kB │ gzip: 71.93 kB
+  ✓ built in 1.18s
+  ```
+
+---
+
+## Created Folder Tree
+
+```text
+PCIF/
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── patient.py
+│   │   │   ├── nutrition.py
+│   │   │   ├── mental_wellness.py
+│   │   │   ├── ccee.py
+│   │   │   └── doctor.py
+│   │   ├── core/
+│   │   │   ├── __init__.py
+│   │   │   └── config.py
+│   │   └── __init__.py
+│   ├── __init__.py
+│   └── main.py
+├── ccee/
+│   ├── __init__.py
+│   ├── engine.py
+│   ├── schema.py
+│   └── README.md
+├── database/
+│   ├── __init__.py
+│   ├── mongodb.py
+│   └── README.md
+├── docs/
+│   ├── PROJECT_SCOPE_FREEZE.md
+│   ├── CCEE_SCHEMA.md
+│   ├── TEST_CASES.md
+│   └── ARCHITECTURE.md
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── PatientDashboard.jsx
+│   │   │   ├── NutritionAIPage.jsx
+│   │   │   ├── MentalWellnessAIPage.jsx
+│   │   │   └── DoctorDashboard.jsx
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+├── .env.example
+├── .gitignore
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## File Explanations
+
+| File / Folder | Purpose in Simple Language |
+|---|---|
+| [docs/PROJECT_SCOPE_FREEZE.md](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/docs/PROJECT_SCOPE_FREEZE.md) | Authoritative scope, rules, and architecture specification frozen for V1. |
+| [docs/CCEE_SCHEMA.md](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/docs/CCEE_SCHEMA.md) | Defines the structured JSON context format, minimal storage rules, and categories. |
+| [docs/TEST_CASES.md](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/docs/TEST_CASES.md) | Standardized scenarios for Nutrition, Mental Wellness, CCEE, and Doctor workflows. |
+| [docs/ARCHITECTURE.md](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/docs/ARCHITECTURE.md) | Diagrammatic representation of system data flow and component boundaries. |
+| [backend/main.py](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/backend/main.py) | Main Python FastAPI server entry point with health check endpoint and CORS support. |
+| [backend/app/core/config.py](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/backend/app/core/config.py) | Loads app settings and environment variables safely from `.env`. |
+| [backend/app/api/patient.py](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/backend/app/api/patient.py) | Placeholder routes for retrieving patient profiles and context histories. |
+| [backend/app/api/nutrition.py](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/backend/app/api/nutrition.py) | Placeholder routes for Nutrition AI conversation endpoints. |
+| [backend/app/api/mental_wellness.py](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/backend/app/api/mental_wellness.py) | Placeholder routes for Mental Wellness AI conversation endpoints. |
+| [backend/app/api/ccee.py](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/backend/app/api/ccee.py) | Placeholder routes for triggering CCEE context extraction. |
+| [backend/app/api/doctor.py](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/backend/app/api/doctor.py) | Placeholder routes for Doctor search, retrieval, consultation, and AI assistant. |
+| [ccee/engine.py](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/ccee/engine.py) | Class stub for CCEE pipeline (Relevance Filter -> Deduplication -> Compression). |
+| [ccee/schema.py](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/ccee/schema.py) | Python `ClinicalContextItem` dataclass for structured clinical JSON generation. |
+| [database/mongodb.py](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/database/mongodb.py) | MongoDB manager stub defining logical collections (`users`, `patient_context`, `doctor_notes`). |
+| [frontend/src/App.jsx](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/frontend/src/App.jsx) | Main tab router for Patient Home, Nutrition AI, Mental Wellness AI, and Doctor Portal. |
+| [frontend/src/components/DoctorDashboard.jsx](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/frontend/src/components/DoctorDashboard.jsx) | Doctor portal UI skeleton with decision authority disclaimer and patient context view. |
+| [frontend/src/index.css](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/frontend/src/index.css) | Custom Vanilla CSS design system with dark mode aesthetic, Outfit/Inter typography, and glassmorphism. |
+| [requirements.txt](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/requirements.txt) | Python backend dependency list. |
+| [.env.example](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/.env.example) | Example environment file for local ports and secrets. |
+| [.gitignore](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/.gitignore) | Git exclusion patterns for `node_modules`, `venv`, `.env`, and caches. |
+| [README.md](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/README.md) | High-level project summary, purpose, architecture, structure, and startup commands. |
+
+---
+
+## Dependency List & Justification
+
+### Backend Dependencies (`requirements.txt`)
+- **`fastapi`**: Modern, fast web framework for building Python REST APIs with automatic OpenAPI `/docs` generation.
+- **`uvicorn[standard]`**: High-performance ASGI web server to run the FastAPI application.
+- **`pydantic`**: Data validation and setting management using Python type annotations.
+- **`python-dotenv`**: Reads key-value pairs from a `.env` file and sets them as environment variables.
+- **`pymongo`**: Standard MongoDB driver required for data persistence in Days 9–11.
+
+### Frontend Dependencies (`frontend/package.json`)
+- **`react` & `react-dom`**: UI library for component-based interface rendering.
+- **`vite`**: Lightning-fast frontend build tool and development server.
+- **`lucide-react`**: Clean, lightweight SVG icon package for modern dashboard UI elements.
+
+---
+
+## How to Run the Project
+
+### 1. Running the Backend Server
+From the project root directory:
+```bash
+py -m uvicorn backend.main:app --reload
+```
+- Server URL: `http://localhost:8000`
+- Interactive API Documentation (Swagger): `http://localhost:8000/docs`
+
+### 2. Running the Frontend Server
+From the `frontend/` directory:
+```bash
+cd frontend
+npm run dev
+```
+- Local Web UI: `http://localhost:5173`
+
+---
+
+## What Was Intentionally NOT Implemented Today
+As per Day 1 instructions:
+1. **No AI Conversational Logic**: Prompt engineering, OpenAI/Gemini SDK calls, and chat message generation for Nutrition AI and Mental Wellness AI are not active.
+2. **No CCEE Extraction Logic**: Natural language processing, entity extraction, relevance filtering, deduplication algorithms, and compression models were not built today.
+3. **No Active Database Connections**: MongoDB queries, indexes, connection pools, and database mutations were not triggered.
+4. **No Doctor AI Assistant Logic**: Historical correlation models and clinical Q&A assistance logic were not included.
+
+---
+
+## Decisions to Make Before Day 2
+Before starting **Day 2** (Patient-Side Architecture & Nutrition AI):
+1. **LLM Provider Choice**: Decide whether to use OpenAI (e.g. `gpt-4o-mini`), Google Gemini (e.g. `gemini-1.5-flash`), or a local model (Ollama) for conversational patient interactions.
+2. **System Prompt Tone**: Confirm the empathic, non-diagnostic persona guidelines for Nutrition AI and Mental Wellness AI so patient interactions remain supportive without giving medical advice.
