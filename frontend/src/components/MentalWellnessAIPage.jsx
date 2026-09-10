@@ -1,60 +1,117 @@
-import React from 'react';
-import { Brain, Send, Info } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, ArrowUp, Brain, Sprout } from 'lucide-react';
+import mindfulnessStudyImg from '../assets/mindfulness_study.jpg';
 
-export default function MentalWellnessAIPage() {
+export default function MentalWellnessAIPage({ setActiveTab }) {
+  const [messages] = useState([
+    {
+      id: 'welcome-mental',
+      sender: 'assistant',
+      text: "Welcome to your Mental Wellness space. This is a quiet place to reflect on your stress, sleep patterns, mood, and daily emotional wellbeing.\n\nHow has your energy, sleep, or stress felt recently?"
+    }
+  ]);
+  const [inputValue, setInputValue] = useState('');
+
   return (
     <div>
-      <div className="page-header">
-        <h1 className="page-title" style={{ color: '#38bdf8' }}>
-          <Brain size={28} /> Mental Wellness AI Assistant
-        </h1>
-        <p className="page-subtitle">
-          Domain-specific conversational assistant for mood, sleep patterns, stress levels, and emotional wellness.
-        </p>
+      {/* Navigation and Title Header */}
+      <button className="chat-nav-back" onClick={() => setActiveTab('patient')}>
+        <ArrowLeft size={16} /> Back to Home
+      </button>
+
+      <div className="chat-page-header">
+        <div>
+          <h1 className="chat-page-title">Mental Wellness Assistant</h1>
+          <p className="chat-page-subtitle">
+            A reflective space for everyday stress, sleep, mood and mental wellbeing.
+          </p>
+        </div>
       </div>
 
-      <div className="chat-container">
-        <div className="chat-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="dot" style={{ background: '#06b6d4' }}></span>
-            <strong style={{ fontSize: '0.9rem' }}>Mental Wellness AI Module</strong>
-            <span className="status-pill placeholder">Placeholder Mode</span>
-          </div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Patient ID: PAT-89210</span>
-        </div>
-
-        <div className="chat-messages">
-          <div className="chat-message system">
-            Welcome! I am your <strong>Mental Wellness Assistant</strong>. I am here to help you reflect on your sleep quality, stress levels, mood fluctuations, and daily emotional well-being.
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-              <em>Note: Relevant health context will be stored in your shared patient history for doctor review.</em>
+      {/* Main Split Layout: Left Chat + Right Motivational Side */}
+      <div className="chat-layout-grid">
+        {/* Left: Chat Container */}
+        <div className="chat-main-card">
+          {/* Header Bar */}
+          <div className="chat-stream-header">
+            <div className="chat-stream-left">
+              <Brain size={18} color="#234B41" />
+              <span>Mindful Reflection & Rest</span>
             </div>
           </div>
 
-          <div className="chat-message user">
-            I'm sleeping only 5 hours a night due to exam stress, and I wake up feeling anxious every morning.
+          {/* Messages Area */}
+          <div className="chat-messages-container">
+            {messages.map((msg) => (
+              <div key={msg.id} className="chat-msg-block">
+                <div className="chat-msg-header">
+                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#D6EFE5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Sprout size={11} color="#2D7A5E" strokeWidth={2.5} />
+                  </div>
+                  <span>Mental Wellness Assistant</span>
+                </div>
+                <div className="chat-msg-bubble assistant">
+                  {msg.text}
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="chat-message system">
-            [Placeholder Response] Thank you for opening up. In future steps, CCEE will extract this context (e.g. reduced sleep of 5 hrs/night associated with stress) into your longitudinal context history.
+          {/* Input Area (Placeholder for Mental Wellness) */}
+          <div className="chat-input-bar">
+            <input
+              type="text"
+              className="chat-text-input"
+              placeholder="Reflect on your stress, sleep, or mood today..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              disabled
+            />
+            <button
+              type="button"
+              className="chat-send-btn"
+              disabled
+            >
+              Send <ArrowUp size={15} strokeWidth={2.5} />
+            </button>
           </div>
         </div>
 
-        <div className="chat-input-area">
-          <input
-            type="text"
-            className="chat-input"
-            placeholder="Type your wellness or sleep experience here... (Placeholder)"
-            disabled
-          />
-          <button className="btn btn-primary btn-disabled" disabled>
-            <Send size={16} /> Send
-          </button>
-        </div>
-      </div>
+        {/* Right: Visual / Motivational Area (Non-interactive) */}
+        <aside className="chat-side-card" aria-label="Rest and Reflection">
+          <div className="chat-side-emblem">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3D685C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 3a9 9 0 0 0 0 18v-9" />
+            </svg>
+          </div>
 
-      <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.825rem', color: 'var(--text-dim)' }}>
-        <Info size={14} /> Conversational LLM integration scheduled for Days 1–3.
+          <span className="chat-side-pillar">Pillar of Mindfulness</span>
+
+          <blockquote className="chat-side-quote">
+            &ldquo;Gentle awareness of today creates clarity for tomorrow.&rdquo;
+          </blockquote>
+
+          <p className="chat-side-desc">
+            Take a moment to breathe and observe how your body and mind are resting.
+          </p>
+
+          <div className="chat-side-photo-box">
+            <img
+              src={mindfulnessStudyImg}
+              alt="Mindful still life with zen stones and sprig"
+              className="chat-side-photo"
+            />
+          </div>
+
+          <div className="chat-side-caption">
+            Quiet Reflection &middot; Daily Study
+          </div>
+
+          <div className="chat-side-companion">
+            PCIF Thoughtful Care Companion
+          </div>
+        </aside>
       </div>
     </div>
   );

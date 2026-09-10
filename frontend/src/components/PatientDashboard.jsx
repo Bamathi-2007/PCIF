@@ -1,76 +1,94 @@
 import React from 'react';
-import { Utensils, Brain, ShieldCheck, Database, Cpu, ArrowRight } from 'lucide-react';
 
 export default function PatientDashboard({ setActiveTab }) {
   return (
     <div>
-      <div className="page-header">
-        <h1 className="page-title">Patient Context Intelligence Dashboard</h1>
-        <p className="page-subtitle">
-          Preserving meaningful physical, lifestyle, and mental wellness context over time.
+      {/* Centered Hero Section */}
+      <section className="home-hero">
+        <div className="home-continuity-pill">
+          PERSONAL SPACE • LONGITUDINAL CONTINUITY
+        </div>
+        <h1 className="home-headline">Your health, understood over time.</h1>
+        <p className="home-subhead">
+          Talk openly about your everyday nutrition or mental wellbeing. PCIF helps preserve the context that matters.
         </p>
-      </div>
+      </section>
 
-      <div className="grid-2" style={{ marginBottom: '2rem' }}>
-        <div className="glass-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-            <div style={{ padding: '0.5rem', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderRadius: '8px' }}>
-              <Utensils size={24} />
+      {/* Pathway Selection Header */}
+      <section className="home-pathway-header">
+        <div>
+          <h2 className="home-pathway-title">What would you like to talk about today?</h2>
+          <p className="home-pathway-desc">Select a pathway to begin your conversational log</p>
+        </div>
+      </section>
+
+      {/* Two Pathway Cards */}
+      <div className="home-cards-grid">
+        {/* Nutrition Pathway Card */}
+        <div className="home-card">
+          <div className="home-card-top">
+            <div className="home-card-icon-box">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C06C54" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 11a8 8 0 0 0 16 0H4z" />
+                <path d="M7 11V7" />
+                <path d="M12 11V5" />
+                <path d="M17 11V7" />
+                <circle cx="12" cy="18" r="1" fill="#C06C54" />
+              </svg>
             </div>
-            <div>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem' }}>Nutrition & Physical AI</h3>
-              <span className="status-pill placeholder">Placeholder Interface</span>
-            </div>
+            <span className="home-card-badge">Daily Nourishment</span>
           </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-            Handles food habits, meal patterns, appetite, hydration, activity level, and lifestyle routines.
+
+          <h3 className="home-card-title">Nutrition</h3>
+          <p className="home-card-text">
+            Talk about meals, food habits, hydration and everyday nutrition.
           </p>
-          <button className="btn btn-primary" onClick={() => setActiveTab('nutrition')}>
-            Launch Nutrition AI <ArrowRight size={16} />
+          <p className="home-card-text" style={{ marginBottom: '1.5rem' }}>
+            Get practical suggestions for healthier daily habits.
+          </p>
+
+          <button
+            className="home-card-btn"
+            onClick={() => setActiveTab('nutrition')}
+          >
+            Start Nutrition Chat &rarr;
           </button>
+
+          <div className="home-card-lock-note">
+            <span>Practical support for everyday nutrition habits.</span>
+          </div>
         </div>
 
-        <div className="glass-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-            <div style={{ padding: '0.5rem', background: 'rgba(6, 182, 212, 0.15)', color: '#38bdf8', borderRadius: '8px' }}>
-              <Brain size={24} />
+        {/* Mental Wellness Pathway Card */}
+        <div className="home-card">
+          <div className="home-card-top">
+            <div className="home-card-icon-box">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#528A7A" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <ellipse cx="12" cy="17" rx="6" ry="3" />
+                <ellipse cx="12" cy="12" rx="4.5" ry="2.5" />
+                <circle cx="12" cy="7.5" r="2.5" />
+              </svg>
             </div>
-            <div>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem' }}>Mental Wellness AI</h3>
-              <span className="status-pill placeholder">Placeholder Interface</span>
-            </div>
+            <span className="home-card-badge">Reflective Space</span>
           </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-            Handles mood, stress levels, sleep hygiene, anxiety experiences, and emotional wellness context.
-          </p>
-          <button className="btn btn-primary" onClick={() => setActiveTab('mental')}>
-            Launch Mental Wellness AI <ArrowRight size={16} />
-          </button>
-        </div>
-      </div>
 
-      <div className="glass-card" style={{ background: 'rgba(18, 24, 40, 0.5)' }}>
-        <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Cpu size={20} color="#818cf8" /> Framework Principles & Data Flow
-        </h3>
-        <div className="grid-3">
-          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px' }}>
-            <h4 style={{ fontSize: '0.95rem', color: '#a5b4fc', marginBottom: '0.35rem' }}>1. CCEE Compression</h4>
-            <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
-              Filters conversational fluff and extracts structured clinical items without saving raw logs.
-            </p>
-          </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px' }}>
-            <h4 style={{ fontSize: '0.95rem', color: '#a5b4fc', marginBottom: '0.35rem' }}>2. Unified Patient DB</h4>
-            <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
-              Nutrition and Mental Wellness contribute to the same patient context history with clear source attribution.
-            </p>
-          </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px' }}>
-            <h4 style={{ fontSize: '0.95rem', color: '#a5b4fc', marginBottom: '0.35rem' }}>3. Doctor Authority</h4>
-            <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
-              Longitudinal context supports doctor consultation. Final medical decision belongs to the doctor.
-            </p>
+          <h3 className="home-card-title">Mental Wellness</h3>
+          <p className="home-card-text">
+            Talk about stress, sleep, mood and everyday mental wellbeing.
+          </p>
+          <p className="home-card-text" style={{ marginBottom: '1.5rem' }}>
+            A private space to reflect and receive supportive guidance.
+          </p>
+
+          <button
+            className="home-card-btn"
+            onClick={() => setActiveTab('mental')}
+          >
+            Start Wellness Chat &rarr;
+          </button>
+
+          <div className="home-card-lock-note">
+            <span>Support for everyday stress, sleep and emotional wellbeing.</span>
           </div>
         </div>
       </div>

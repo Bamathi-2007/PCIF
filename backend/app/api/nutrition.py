@@ -1,26 +1,52 @@
 """
-Nutrition AI Route Placeholders.
+PCIF Nutrition AI API Routes.
+Provides patient-facing conversational endpoints for nutrition and healthy-lifestyle guidance.
 """
 
+from typing import List
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from backend.app.services.llm_service import llm_service
 
 router = APIRouter(prefix="/nutrition", tags=["Nutrition AI"])
 
 
-class ConversationRequest(BaseModel):
-    patient_id: str
-    message: str
+class ChatTurn(BaseModel):
+    role: str = Field(..., description="Role of the speaker: 'user' or 'assistant'")
+    content: str = Field(..., description="Turn text content")
 
 
-@router.post("/chat")
-async def nutrition_chat(payload: ConversationRequest):
+class NutritionChatRequest(BaseModel):
+    message: str = Field(..., description="Current patient input message")
+    history: List[ChatTurn] = Field(
+        default_factory=list,
+        description="Temporary in-memory conversation history for the active session"
+    )
+
+
+class NutritionChatResponse(BaseModel):
+    source: str = "nutrition"
+    reply: str
+    status: str = "success"
+
+
+@router.post("/chat", response_model=NutritionChatResponse)
+async def nutrition_chat(payload: NutritionChatRequest):
     """
-    Nutrition AI conversation endpoint placeholder.
-    Handles food habits, meal patterns, appetite, hydration, and physical lifestyle.
+    Nutrition AI conversational chat endpoint.
+    Statelessly processes multi-turn context sent by the client.
+    Configured with Gemini store=false (no provider-side interaction persistence).
+    Raw conversation history is not persisted in the PCIF application database during the prototype.
     """
-    return {
-        "source": "nutrition",
-        "reply": f"[Nutrition AI Placeholder] Received message from patient {payload.patient_id}. Conversation logic scheduled for Days 1-3.",
-        "extracted_context_count": 0
-    }
+    history_dicts = [{"role": turn.role, "content": turn.content} for turn in payload.history]
+
+    reply = llm_service.chat_nutrition(
+        message=payload.message,
+        history=history_dicts
+    )
+
+    return NutritionChatResponse(
+        source="nutrition",
+        reply=reply,
+        status="success"
+    )
