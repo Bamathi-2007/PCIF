@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { ArrowLeft, ArrowUp, Brain, Sprout } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, ArrowUp, AlertCircle, Brain, User } from 'lucide-react';
 import mindfulnessStudyImg from '../assets/mindfulness_study.jpg';
 
 export default function MentalWellnessAIPage({ setActiveTab }) {
-  const [messages] = useState([
+  const [messages, setMessages] = useState([
     {
       id: 'welcome-mental',
       sender: 'assistant',
@@ -11,6 +11,80 @@ export default function MentalWellnessAIPage({ setActiveTab }) {
     }
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  const handleSendMessage = async () => {
+    const textToSend = inputValue.trim();
+    if (!textToSend || isLoading) return;
+
+    setError(null);
+
+    const newUserMessage = {
+      id: 'msg-' + Date.now(),
+      sender: 'user',
+      text: textToSend
+    };
+
+    // Prepare temporary conversation history for backend
+    const historyPayload = messages.map((m) => ({
+      role: m.sender === 'user' ? 'user' : 'assistant',
+      content: m.text
+    }));
+
+    setMessages((prev) => [...prev, newUserMessage]);
+    setInputValue('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/mental-wellness/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: textToSend,
+          history: historyPayload
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const aiResponse = {
+        id: 'reply-' + Date.now(),
+        sender: 'assistant',
+        text: data.reply || "I didn't receive a response text."
+      };
+
+      setMessages((prev) => [...prev, aiResponse]);
+    } catch (err) {
+      console.error('Failed to send mental wellness chat message:', err);
+      setError('Could not communicate with the mental wellness service. Please check that the server is active.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
   return (
     <div>
@@ -42,39 +116,91 @@ export default function MentalWellnessAIPage({ setActiveTab }) {
 
           {/* Messages Area */}
           <div className="chat-messages-container">
+            {error && (
+              <div className="chat-error-notice">
+                <AlertCircle size={15} />
+                <span>{error}</span>
+              </div>
+            )}
+
             {messages.map((msg) => (
               <div key={msg.id} className="chat-msg-block">
+                {msg.sender === 'assistant' ? (
+                  <>
+                    <div className="chat-msg-header">
+                      <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#D6EFE5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Brain size={11} color="#2D7A5E" strokeWidth={2.5} />
+                      </div>
+                      <span>Mental Wellness Assistant</span>
+                    </div>
+                    <div className="chat-msg-bubble assistant">
+                      {msg.text}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="chat-msg-header user">
+                      <span>You</span>
+                      <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#E69E87', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                        <User size={11} strokeWidth={2.5} />
+                      </div>
+                    </div>
+                    <div className="chat-msg-bubble user">
+                      {msg.text}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+
+            {isLoading && (
+              <div className="chat-msg-block">
                 <div className="chat-msg-header">
                   <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#D6EFE5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Sprout size={11} color="#2D7A5E" strokeWidth={2.5} />
+                    <Brain size={11} color="#2D7A5E" strokeWidth={2.5} />
                   </div>
                   <span>Mental Wellness Assistant</span>
                 </div>
-                <div className="chat-msg-bubble assistant">
-                  {msg.text}
+                <div className="chat-msg-bubble assistant" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.82rem', color: '#456E63' }}>Thinking...</span>
+                  <div className="typing-dots">
+                    <span className="typing-dot"></span>
+                    <span className="typing-dot"></span>
+                    <span className="typing-dot"></span>
+                  </div>
                 </div>
               </div>
-            ))}
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area (Placeholder for Mental Wellness) */}
-          <div className="chat-input-bar">
+          {/* Input Area */}
+          <form
+            className="chat-input-bar"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
+          >
             <input
               type="text"
               className="chat-text-input"
               placeholder="Reflect on your stress, sleep, or mood today..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              disabled
+              onKeyDown={handleKeyDown}
+              disabled={isLoading}
+              autoFocus
             />
             <button
-              type="button"
+              type="submit"
               className="chat-send-btn"
-              disabled
+              disabled={!inputValue.trim() || isLoading}
             >
               Send <ArrowUp size={15} strokeWidth={2.5} />
             </button>
-          </div>
+          </form>
         </div>
 
         {/* Right: Visual / Motivational Area (Non-interactive) */}
@@ -116,3 +242,4 @@ export default function MentalWellnessAIPage({ setActiveTab }) {
     </div>
   );
 }
+

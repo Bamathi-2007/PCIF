@@ -10,7 +10,7 @@ from typing import Optional, List, Dict
 from dotenv import load_dotenv
 from google import genai
 from backend.app.core.config import settings
-from backend.app.prompts import NUTRITION_SYSTEM_INSTRUCTION
+from backend.app.prompts import NUTRITION_SYSTEM_INSTRUCTION, MENTAL_WELLNESS_SYSTEM_INSTRUCTION
 
 logger = logging.getLogger(__name__)
 
@@ -34,25 +34,26 @@ class GeminiLLMService:
             self._client = genai.Client(api_key=api_key)
         return self._client
 
-    def chat_nutrition(
+    def _chat(
         self,
         message: str,
-        history: Optional[List[Dict[str, str]]] = None
+        history: Optional[List[Dict[str, str]]],
+        system_instruction: str,
+        service_name: str
     ) -> str:
         """
-        Sends a user message and temporary in-memory history to the Nutrition AI
-        via the Gemini Interactions API in stateless mode (store=False).
-
-        Do not pass previous_interaction_id; provider-side storage is disabled.
-        System instruction comes strictly from the backend NUTRITION_SYSTEM_INSTRUCTION.
-
-        Returns:
-            assistant_reply_text: str
+        Shared stateless interaction method calling Google Gemini via the Interactions API.
+        
+        Preserves:
+        - Gemini Interactions persistence is disabled using store=False, and PCIF does not persist raw conversations in its own database during the current prototype.
+        - no previous_interaction_id
+        - sanitized in-memory conversation steps
+        - graceful error handling
         """
         client = self._get_client()
         if client is None:
             return (
-                "[Nutrition AI Notice] GEMINI_API_KEY is not configured in backend .env. "
+                f"[{service_name} Notice] GEMINI_API_KEY is not configured in backend .env. "
                 "Please configure your Gemini API key in .env to enable live conversational responses."
             )
 
@@ -91,7 +92,7 @@ class GeminiLLMService:
             interaction = client.interactions.create(
                 model=model_name,
                 input=steps,
-                system_instruction=NUTRITION_SYSTEM_INSTRUCTION,
+                system_instruction=system_instruction,
                 store=False,
             )
 
@@ -100,7 +101,7 @@ class GeminiLLMService:
             return reply_text
 
         except Exception as e:
-            logger.error(f"Error calling Gemini Interactions API: {e}", exc_info=True)
+            logger.error(f"Error calling Gemini Interactions API for {service_name}: {e}", exc_info=True)
             error_str = str(e)
 
             # User-friendly guidance for common configuration issues
@@ -115,8 +116,41 @@ class GeminiLLMService:
                 )
 
             return (
-                "I'm having trouble connecting to the nutrition service right now. Please try again shortly."
+                f"I'm having trouble connecting to the {service_name.lower()} right now. Please try again shortly."
             )
+
+    def chat_nutrition(
+        self,
+        message: str,
+        history: Optional[List[Dict[str, str]]] = None
+    ) -> str:
+        """
+        Sends a user message and temporary in-memory history to the Nutrition AI
+        via the Gemini Interactions API in stateless mode (store=False).
+        """
+        return self._chat(
+            message=message,
+            history=history,
+            system_instruction=NUTRITION_SYSTEM_INSTRUCTION,
+            service_name="Nutrition AI"
+        )
+
+    def chat_mental_wellness(
+        self,
+        message: str,
+        history: Optional[List[Dict[str, str]]] = None
+    ) -> str:
+        """
+        Sends a user message and temporary in-memory history to the Mental Wellness AI
+        via the Gemini Interactions API in stateless mode (store=False).
+        """
+        return self._chat(
+            message=message,
+            history=history,
+            system_instruction=MENTAL_WELLNESS_SYSTEM_INSTRUCTION,
+            service_name="Mental Wellness AI"
+        )
 
 
 llm_service = GeminiLLMService()
+

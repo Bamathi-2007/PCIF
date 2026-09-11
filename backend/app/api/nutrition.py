@@ -35,8 +35,7 @@ async def nutrition_chat(payload: NutritionChatRequest):
     """
     Nutrition AI conversational chat endpoint.
     Statelessly processes multi-turn context sent by the client.
-    Configured with Gemini store=false (no provider-side interaction persistence).
-    Raw conversation history is not persisted in the PCIF application database during the prototype.
+    Gemini Interactions persistence is disabled using store=False, and PCIF does not persist raw conversations in its own database during the current prototype.
     """
     history_dicts = [{"role": turn.role, "content": turn.content} for turn in payload.history]
 
