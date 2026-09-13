@@ -1,135 +1,207 @@
 # Clinical Context Extraction Engine (CCEE) - Schema Specification
 
-## 1. Purpose of CCEE Schema
-
-The **Clinical Context Extraction Engine (CCEE)** schema defines the structured JSON representation for storing patient context extracted from conversational AI interactions (Nutrition AI and Mental Wellness AI) and doctor clinical notes.
-
-> **Status Note**: This schema provides the baseline specification for Day 1 setup and will be finalized during CCEE development (Days 4–8).
+## Version 1.0 (Frozen Contract - Day 4 Part A)
 
 ---
 
-## 2. Minimal-Storage Principle
+## 1. Purpose and Goal
 
-CCEE strictly enforces the **minimal-storage principle**:
+The **Clinical Context Extraction Engine (CCEE)** defines the input/output contract for extracting structured, high-value clinical context from patient conversations in PCIF.
 
-1. **Relevance Filtering**: Do not store conversational filler, casual greetings, or non-clinical remarks.
-2. **Redundancy Reduction**: Combine repetitive statements (e.g. daily logs of "slept 5 hours") into compressed longitudinal trends.
-3. **Context Compression**: Store high-level clinical summaries and metrics instead of full conversational transcripts.
-4. **No Schema Bloat**: Omit optional fields if no data was reported; do not generate empty placeholders.
+CCEE takes conversational text from either:
+* **Nutrition AI**
+* **Mental Wellness AI**
 
----
+and produces a compact list of clinically useful **patient-reported context items**.
 
-## 3. Information Source Distinction
-
-Every context item recorded in PCIF must explicitly track its origin to distinguish patient-reported conversational context from clinician-confirmed findings:
-
-| Source Identifier | Description | Validation Status |
-|---|---|---|
-| `nutrition` | Extracted from Nutrition AI conversation | Patient-Reported |
-| `mental_wellness` | Extracted from Mental Wellness AI conversation | Patient-Reported |
-| `doctor` | Entered during doctor consultation | Clinician-Confirmed |
+> **Core Objective**: CCEE must prioritize **meaningful context compression**, not exhaustive entity extraction.
 
 ---
 
-## 4. Initial Context Categories
+## 2. Frozen V1 Clinical Context Item
 
-Context records are classified into the following initial domain categories:
+Each context item produced by CCEE follows this minimal JSON structure:
 
-- `nutrition` (meal patterns, dietary changes, appetite)
-- `sleep` (sleep duration, sleep quality, insomnia patterns)
-- `stress` (perceived stress level, triggers)
-- `mood` (emotional wellness, affect, energy)
-- `activity` (physical activity, exercise habits)
-- `hydration` (water intake patterns)
-- `appetite` (changes in appetite or hunger cues)
-- `symptom` (patient-reported discomfort or physical symptoms)
-- `habit` (substance use, caffeine intake, lifestyle routines)
-- `lifestyle_change` (recent major life changes impacting health)
-- `other_clinically_relevant_context` (general health notes)
+```json
+{
+  "category": "sleep",
+  "summary": "Reduced sleep associated with exam stress",
+  "value": "5 hours/night",
+  "duration": "1 week",
+  "source": "mental_wellness",
+  "record_type": "patient_reported"
+}
+```
+
+### 2.1 Field Specification
+
+| Field | Type | Requirement | Description / Allowed Values |
+|---|---|---|---|
+| `category` | String | **Required** | One of the 11 frozen initial categories (see Section 3). |
+| `summary` | String | **Required** | Concise, compressed clinical summary of the phenomenon. |
+| `source` | String | **Required** | Originating agent: `"nutrition"` or `"mental_wellness"`. |
+| `record_type` | String | **Required** | Verification classification: currently must be `"patient_reported"`. |
+| `value` | String | *Optional* | Specific quantitative or qualitative measure (e.g., `"5 hours/night"`, `"1 glass/day"`). Omit if not reported. |
+| `duration` | String | *Optional* | Timeframe or duration (e.g., `"1 week"`, `"past 3 days"`). Omit if not reported. |
+
+> **Note on Omissions**: Unnecessary empty fields (e.g., `""` or `null`) should **not** be included merely to satisfy a template. If a detail like `value` or `duration` is not present, omit the field.
 
 ---
 
-## 5. JSON Schema Representation
+## 3. Allowed Sources and Categories
+
+### 3.1 Allowed Sources
+For patient-agent CCEE extractions, `source` must strictly be one of:
+* `nutrition`
+* `mental_wellness`
+
+### 3.2 Record Type
+For patient-agent CCEE extractions, `record_type` must currently be:
+* `patient_reported`
+
+*(Clinician-confirmed findings such as doctor notes are introduced during doctor-side workflows, not during conversational context extraction).*
+
+### 3.3 Initial Context Categories
+Do not add additional categories unless clearly required. The frozen initial categories are:
+
+1. `nutrition` — Meal patterns, dietary habits, skipping meals.
+2. `sleep` — Sleep duration, sleep quality, insomnia, waking up tired.
+3. `stress` — Perceived stress levels, academic/work stress, triggers.
+4. `mood` — Affect, low energy, feelings of sadness or anxiety.
+5. `hydration` — Daily fluid and water intake patterns.
+6. `appetite` — Reduced appetite, increased appetite, early satiety.
+7. `activity` — Physical activity, exercise frequency, sedentary periods.
+8. `symptom` — Patient-reported physical discomfort (e.g., fatigue, stomach discomfort, headache).
+9. `habit` — Routines, caffeine consumption, lifestyle habits.
+10. `lifestyle_change` — Recent schedule changes, exam periods, major routine disruptions.
+11. `other_clinically_relevant_context` — Other relevant health/lifestyle factors not covered above.
+
+---
+
+## 4. Extraction Principles
+
+CCEE is governed by the following core extraction principles:
+
+1. **Store only clinically/contextually useful information**: Ignore casual greetings, weather comments, conversational filler, and non-health chit-chat.
+2. **Do not save full raw conversation as clinical context**: Raw conversational turns must never be stored as clinical context items.
+3. **Do not create a field for every word/entity**: Avoid creating distinct records or attributes for every noun, adjective, or mention in a sentence.
+4. **Prefer one compressed record when several details describe the same phenomenon**: Synthesize interrelated clues into a single coherent clinical context item.
+5. **Preserve important values such as duration or frequency only when useful**: Capture quantitative specifics (e.g., `"5 hours/night"`, `"1 week"`) when they add diagnostic or longitudinal value.
+6. **Do not infer diagnoses**: CCEE captures patient-reported observations (e.g., "Reduced sleep associated with exam stress"), not medical diagnoses (do not output "Insomnia Disorder" or "Major Depressive Episode").
+7. **Do not treat patient-reported information as clinically confirmed**: All items extracted from conversations are tagged with `record_type: "patient_reported"`.
+8. **Ignore casual/non-health conversation**: Non-clinical remarks produce zero context items (an empty list `[]`).
+9. **Related details may be combined into a meaningful summary**: Co-occurring causes and effects (e.g., exams causing stress and reduced sleep) should be summarized together when describing a single issue.
+10. **Different clinically meaningful phenomena may become separate records**: If the patient discusses two distinct health issues (e.g., poor sleep in mental wellness and chronic low fluid intake in nutrition), they are captured as separate context items.
+
+---
+
+## 5. Canonical Compression Example
+
+### Input Text:
+> *"I've been sleeping around five hours because I'm stressed about exams for the last week."*
+
+### Preferred Output:
+```json
+{
+  "category": "sleep",
+  "summary": "Reduced sleep associated with exam stress",
+  "value": "approximately 5 hours/night",
+  "duration": "1 week",
+  "source": "mental_wellness",
+  "record_type": "patient_reported"
+}
+```
+
+### Prohibited Anti-Pattern:
+Do **NOT** break this input into multiple fragmented key-value records such as:
+```json
+// PROHIBITED ANTI-PATTERN: DO NOT DO THIS
+[
+  {"entity": "sleep", "hours": 5},
+  {"entity": "stress_reason", "value": "exams"},
+  {"entity": "duration", "value": "1 week"}
+]
+```
+CCEE focuses on **holistic, clinically meaningful context compression**.
+
+---
+
+## 6. Formal JSON Schema (Draft-07)
 
 ```json
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ClinicalContextItem",
+  "description": "Minimal frozen clinical context item extracted from patient conversations.",
   "type": "object",
   "required": [
-    "patient_id",
     "category",
     "summary",
     "source",
-    "record_type",
-    "timestamp"
+    "record_type"
   ],
   "properties": {
-    "patient_id": {
-      "type": "string",
-      "description": "Unique identifier for the patient"
-    },
     "category": {
       "type": "string",
-      "description": "Clinical context category classification"
+      "enum": [
+        "nutrition",
+        "sleep",
+        "stress",
+        "mood",
+        "hydration",
+        "appetite",
+        "activity",
+        "symptom",
+        "habit",
+        "lifestyle_change",
+        "other_clinically_relevant_context"
+      ],
+      "description": "Clinical category classification"
     },
     "summary": {
       "type": "string",
-      "description": "Concise compressed clinical summary"
-    },
-    "value": {
-      "type": "string",
-      "description": "Specific quantitative or qualitative value (e.g., '5 hours/night')"
-    },
-    "duration": {
-      "type": "string",
-      "description": "Reported duration or temporal timeframe (e.g., 'past 2 weeks')"
+      "description": "Compressed clinical summary of the reported phenomenon"
     },
     "source": {
       "type": "string",
-      "enum": ["nutrition", "mental_wellness", "doctor"],
-      "description": "Source module that generated this record"
+      "enum": [
+        "nutrition",
+        "mental_wellness"
+      ],
+      "description": "Originating conversational agent"
     },
     "record_type": {
       "type": "string",
-      "enum": ["patient_reported", "doctor_confirmed"],
-      "description": "Clinical verification status"
+      "enum": [
+        "patient_reported"
+      ],
+      "description": "Clinical validation status"
     },
-    "timestamp": {
+    "value": {
       "type": "string",
-      "format": "date-time",
-      "description": "ISO 8601 timestamp of record extraction"
+      "description": "Optional quantitative or qualitative metric (e.g., '5 hours/night')"
+    },
+    "duration": {
+      "type": "string",
+      "description": "Optional reported duration or timeframe (e.g., '1 week')"
     }
-  }
+  },
+  "additionalProperties": false
 }
 ```
 
 ---
 
-## 6. Example Extracted Context Payload
+## 7. Scope Boundaries (Part A vs. Downstream Phases)
 
-```json
-{
-  "context": [
-    {
-      "patient_id": "PAT-89210",
-      "category": "sleep",
-      "summary": "Reduced sleep associated with exam stress",
-      "value": "approximately 5 hours/night",
-      "duration": "1 week",
-      "source": "mental_wellness",
-      "record_type": "patient_reported",
-      "timestamp": "2026-09-09T23:35:00Z"
-    },
-    {
-      "patient_id": "PAT-89210",
-      "category": "nutrition",
-      "summary": "Repeated breakfast skipping",
-      "duration": "1 week",
-      "source": "nutrition",
-      "record_type": "patient_reported",
-      "timestamp": "2026-09-09T23:35:00Z"
-    }
-  ]
-}
-```
+To preserve project boundaries during Day 4 Part A:
+* **Included in Part A**: Minimal frozen contract for extracted conversation items (`category`, `summary`, `source`, `record_type`, optional `value` and `duration`), categories, and extraction principles.
+* **Deferred to Later Days (Days 4 Part B / 5–11)**:
+  * Gemini LLM prompt engineering and extraction runtime (`extract_context()`)
+  * `patient_id` assignment and persistence
+  * ISO timestamps (`timestamp`)
+  * Database storage / MongoDB schema integration
+  * Cross-session deduplication and trend detection
+  * Longitudinal merging and historical conflict resolution
+  * Confidence scoring
+  * CCEE FastAPI endpoints

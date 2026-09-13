@@ -5,12 +5,19 @@ and the stateless Gemini Interactions API (configured with store=False).
 """
 
 import os
+import json
 import logging
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 from backend.app.core.config import settings
-from backend.app.prompts import NUTRITION_SYSTEM_INSTRUCTION, MENTAL_WELLNESS_SYSTEM_INSTRUCTION
+from backend.app.prompts import (
+    NUTRITION_SYSTEM_INSTRUCTION,
+    MENTAL_WELLNESS_SYSTEM_INSTRUCTION,
+    CCEE_SYSTEM_INSTRUCTION,
+)
+from ccee.schema import CCEEExtractionResult
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +158,75 @@ class GeminiLLMService:
             service_name="Mental Wellness AI"
         )
 
+    def extract_ccee(
+        self,
+        conversation_text: str,
+        source: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Extracts structured clinical context items from conversation text using Google Gemini
+        with structured JSON output validated against the frozen CCEE schema.
+
+        Returns a list of raw extracted dictionaries, or empty list if no clinical context is found.
+        """
+        client = self._get_client()
+        if client is None:
+            logger.warning("Gemini client unavailable: GEMINI_API_KEY is not configured.")
+            return []
+
+        model_name = os.getenv("GEMINI_MODEL", settings.GEMINI_MODEL) or "gemini-3.8-flash"
+
+        prompt = (
+            f"SOURCE AGENT: {source}\n\n"
+            f"PATIENT CONVERSATION TRANSCRIPT:\n\"\"\"\n{conversation_text.strip()}\n\"\"\"\n\n"
+            "Analyze the above conversation according to your instructions. "
+            "Extract only clinically or contextually useful patient-reported health/lifestyle information. "
+            "If the conversation is purely casual greetings, weather, non-health preferences, or irrelevant, return items: []."
+        )
+
+        try:
+            config = types.GenerateContentConfig(
+                system_instruction=CCEE_SYSTEM_INSTRUCTION,
+                response_mime_type="application/json",
+                response_schema=CCEEExtractionResult,
+                temperature=0.0,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
+            )
+
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=config,
+            )
+
+            raw_text = response.text or "{}"
+            data = json.loads(raw_text)
+
+            raw_items = data.get("items", [])
+            if not isinstance(raw_items, list):
+                logger.warning(f"Unexpected CCEE response structure: {raw_text}")
+                return []
+
+            cleaned_items: List[Dict[str, Any]] = []
+            for item in raw_items:
+                if isinstance(item, dict):
+                    # Guarantee source and default record_type
+                    item["source"] = source
+                    if "record_type" not in item or not item["record_type"]:
+                        item["record_type"] = "patient_reported"
+                    cleaned_items.append(item)
+
+            return cleaned_items
+
+        except Exception as e:
+            error_str = str(e)
+            logger.error(f"Error extracting CCEE context via Gemini: {error_str}", exc_info=True)
+            if "RESOURCE_EXHAUSTED" in error_str or "429" in error_str:
+                raise RuntimeError(f"Gemini API rate limit reached (429): {error_str}") from e
+            # Controlled failure for other errors: log and re-raise or return empty list
+            raise RuntimeError(f"CCEE extraction failed: {error_str}") from e
+
 
 llm_service = GeminiLLMService()
+
 
