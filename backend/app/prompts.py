@@ -168,8 +168,6 @@ A. MERGE REPEATED STATEMENTS & SEMANTIC NEAR-DUPLICATES:
 - Multiple sentences or turns describing the same underlying phenomenon must produce ONE compressed record.
 - Example: "I keep skipping breakfast. I usually don't eat anything in the morning before college. Most weekdays I leave without breakfast..."
   -> Produce ONE nutrition item describing regular breakfast skipping due to early college schedule. Do NOT output multiple items.
-- Example: "I only sleep around five hours." "I've barely been sleeping lately." "I get about five hours every night because of assignments."
-  -> Produce ONE sleep item: "Reduced sleep associated with assignment workload", value: "approximately 5 hours/night".
 
 B. CAUSE / TRIGGER FOLDING:
 - Causes, triggers, and situational context should be naturally integrated into the summary of the primary phenomenon they explain.
@@ -177,24 +175,56 @@ B. CAUSE / TRIGGER FOLDING:
   -> Preferred: ONE sleep item:
      summary: "Reduced sleep associated with exam stress"
      value: "4 hours/night"
-  -> Do NOT automatically create a separate "stress" item. The exam stress is already preserved as meaningful context for the sleep issue.
-- EXCEPTION (INDEPENDENT PHENOMENON): If stress, mood, or another factor is described as an independently significant phenomenon with its own daytime functional impact (e.g., "I feel overwhelmed throughout the day because of exams and can't concentrate on normal tasks. I'm also sleeping around four hours."), then retaining TWO items (one stress item, one sleep item) is appropriate.
+  -> Do NOT automatically create a separate "stress" item unless stress has independent daytime functional impact (e.g. daytime overwhelm and inability to concentrate).
 
 C. KEEP DISTINCT PHENOMENA DISTINCT:
 - Do NOT merge genuinely separate health phenomena merely because they occur in the same conversation.
 - Example: "I've been sleeping four hours and my appetite has dropped."
   -> Retain TWO distinct items: sleep AND appetite.
-- Example: "I barely drink water and I also skip breakfast."
-  -> Retain TWO distinct items: hydration AND nutrition.
 
 D. VALUE AND DURATION CONSOLIDATION:
 - Retain the most useful, supported quantitative or qualitative metric and duration.
-- Consolidate multiple mentions into the most accurate supported representation (e.g., "approximately 4-5 hours/night", duration: "1 week").
 - STRICT ATTRIBUTE ATTACHMENT: Attach quantities, durations, frequencies, and qualifiers ONLY to the phenomenon they clearly describe. Do not propagate a temporal or quantitative attribute to neighboring phenomena unless the conversation explicitly supports it. (For example, in "I'm sleeping four hours and I've also lost my appetite this week", duration "1 week" attaches to appetite, NOT to sleep).
 - PRESERVE EPISODIC & QUALIFIED NUMERIC STATEMENTS: Do NOT convert episodic, intermittent, or tentative statements (e.g., "some days I only drink one glass", "occasionally", "sometimes", "around", "approximately") into absolute daily frequencies such as "1 glass/day". Preserve the cautious qualifier (e.g., value: "1 glass on some days" or "as little as 1 glass on some days").
 
 --------------------------------------------------
-3. NO DIAGNOSIS OR MEDICAL INFERENCE
+3. TEMPORAL CONTEXT & SUPERSESSION HANDLING (DAY 7 CORE)
+--------------------------------------------------
+CCEE must accurately understand temporal relationships, changes over time, and self-corrections within the transcript.
+
+A. IN-CONVERSATION CORRECTION & SUPERSESSION:
+- When a patient explicitly corrects or replaces an earlier statement (e.g. "I sleep around 3 hours. Actually, sorry, it's closer to 5 hours"), the LATER correction supersedes the earlier statement.
+- Do NOT retain the superseded earlier value (e.g. 3 hours) as a second active item. Extract ONE item with the corrected current value ("approximately 5 hours/night").
+- Only supersede when the patient explicitly corrects/replaces earlier information. Do not assume every later turn replaces previous facts unless explicitly intended as a correction.
+
+B. TEMPORAL STATE CHANGES (PAST vs. CURRENT):
+- Do NOT treat past state and current state as two active duplicate current facts.
+- When a patient describes a change (improvement or decline) over time:
+  - Output ONE compact item representing the phenomenon.
+  - Set "value" to reflect the CURRENT active quantitative metric.
+  - Describe the contextual change/shift (e.g., "Sleep improved from approximately 4 hours/night last week to 7 hours/night currently", or "Sleep decreased from approximately 6 hours/night earlier this month to 4 hours/night this week, associated with assignment workload") in the "summary".
+
+C. ONGOING DURATIONS vs. RESOLVED PAST EVENTS:
+- ONGOING DURATIONS: Statements describing ongoing or recent trends ("for the past 2 weeks", "lately", "since exams started", "still getting worse") must capture the reported duration (e.g., duration: "2 weeks"). Preserve ongoing/worsening indicators in the summary without inventing severity scores.
+- RESOLVED INSIGNIFICANT PAST EVENTS: Isolated historical events that are completely resolved and have no ongoing contextual value (e.g., "I had one bad night of sleep 3 months ago, but my sleep has been normal ever since") should be omitted (return items: [] if no other clinical context exists). Do NOT store historical trivia.
+
+D. NO FALSIFIED TEMPORAL PRECISION:
+- Preserve approximate or calendar-relative expressions as reported (e.g. "about two weeks" -> duration: "approximately 2 weeks" or "about 2 weeks"; "mostly this week" -> duration: "this week").
+- Do not normalize approximate or calendar-relative expressions into more precise durations than the patient reported.
+- Do NOT convert "this week" or "mostly this week" into an exact 7-day duration such as "1 week".
+- Do NOT strip approximate qualifiers like "about", "around", or "approximately" from duration or value metrics.
+
+E. ASSISTANT-TURN SAFETY:
+- In transcripts containing turn roles (User vs Assistant), extract patient-reported information strictly from USER turns.
+- Assistant turns (questions, suggestions, hypotheses) provide conversational context only and must NEVER be extracted as patient-reported facts.
+- Example: Assistant: "Have you been sleeping only four hours?" User: "No, usually seven." -> value MUST be "7 hours/night", NOT 4 hours/night.
+
+F. STRICT SOURCE INTEGRITY:
+- The "source" field represents the originating agent stream ("nutrition" or "mental_wellness").
+- Do NOT alter "source" based on extracted category. (For example, if a sleep issue is reported inside a Nutrition AI conversation, category is "sleep" but source remains "nutrition").
+
+--------------------------------------------------
+4. NO DIAGNOSIS OR MEDICAL INFERENCE
 --------------------------------------------------
 CCEE represents ONLY what the patient directly reported.
 - YOU MUST NEVER INFER MEDICAL DIAGNOSES OR CLINICAL DISORDERS.
@@ -203,7 +233,7 @@ CCEE represents ONLY what the patient directly reported.
 - record_type MUST always be "patient_reported".
 
 --------------------------------------------------
-4. PRESERVE UNCERTAINTY & QUALIFIERS
+5. PRESERVE UNCERTAINTY & QUALIFIERS
 --------------------------------------------------
 Do not convert uncertain, tentative, or episodic patient statements into certainties, absolute frequencies, or exaggerated severity.
 - If the patient says "I think I've been eating less than usual recently", summarize tentatively: "Patient reports eating less than usual".
@@ -212,14 +242,14 @@ Do not convert uncertain, tentative, or episodic patient statements into certain
 - Do NOT fabricate exact durations, frequencies, or values if not specified by the patient.
 
 --------------------------------------------------
-5. FIELD SPECIFICATIONS
+6. FIELD SPECIFICATIONS
 --------------------------------------------------
 - category: Must be strictly one of:
   "nutrition", "sleep", "stress", "mood", "hydration", "appetite", "activity", "symptom", "habit", "lifestyle_change", "other_clinically_relevant_context"
 - summary: Concise clinical summary of the phenomenon (1 sentence).
 - record_type: Strictly "patient_reported".
 - value: Optional specific metric (e.g., "5 hours/night", "1 glass on some days", "half a meal"). Set to null if not stated.
-- duration: Optional timeframe (e.g., "1 week", "past 3 days", "10 days"). Set to null if not stated. Do not attach to unrelated items.
+- duration: Optional timeframe (e.g., "1 week", "past 3 days", "10 days", "2 weeks"). Set to null if not stated. Do not attach to unrelated items.
 
 If no clinical context exists, return items: [].
 """

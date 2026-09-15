@@ -377,9 +377,201 @@ The following 7 synthetic test cases validate CCEE's semantic compression and re
 
 ---
 
-## 6. Doctor Retrieval Scenarios
+---
 
-### Scenario 6.1: Longitudinal Context Retrieval
+## 6. CCEE Day 7 Synthetic Test Cases (Temporal Context, Supersession & Source Integrity)
+
+The following 9 synthetic test cases validate CCEE's understanding of temporal context, explicit in-conversation self-corrections, past vs. current state transitions, ongoing durations, resolved past events, assistant-turn safety, and strict source integrity within a single conversation session.
+
+---
+
+### Test Case 6.1 (Day 7 Case 1): Explicit self-correction
+- **Conversation**:
+  - *User*: "I've been sleeping around three hours. Actually, I think it's closer to five hours."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reduced sleep duration",
+      "value": "approximately 5 hours/night",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: The explicit self-correction ("closer to five hours") supersedes the earlier statement ("three hours"). The superseded 3-hour metric is NOT retained as an active second record.
+
+---
+
+### Test Case 6.2 (Day 7 Case 2): Past → current improvement
+- **Conversation**:
+  - *User*: "Last week I was sleeping around four hours, but this week I'm back to about seven hours."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Sleep improved from approximately 4 hours/night last week to 7 hours/night currently",
+      "value": "approximately 7 hours/night",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Captures the temporal shift into a single compressed item. Current `value` reflects current state (7 hours/night) and past state (4 hours/night) is preserved as historical context in `summary`.
+
+---
+
+### Test Case 6.3 (Day 7 Case 3): Ongoing duration
+- **Conversation**:
+  - *User*: "I've been sleeping around five hours every night for the past two weeks."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reduced sleep duration",
+      "value": "approximately 5 hours/night",
+      "duration": "2 weeks",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Recognizes "for the past two weeks" as an ongoing duration and populates `duration` accordingly.
+
+---
+
+### Test Case 6.4 (Day 7 Case 4): Resolved insignificant past event
+- **Conversation**:
+  - *User*: "I had one night where I barely slept about three months ago, but my sleep has been normal ever since."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  []
+  ```
+- **Notes**: An isolated, completely resolved past event from 3 months ago with no ongoing clinical context yields an empty list `[]`.
+
+---
+
+### Test Case 6.5 (Day 7 Case 5): Ongoing worsening appetite & Approximate Duration
+- **Conversation**:
+  - *User*: "My appetite started decreasing about two weeks ago, and it still seems to be getting worse."
+- **Source**: `nutrition`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "appetite",
+      "summary": "Decreased appetite for approximately two weeks with reported ongoing worsening",
+      "duration": "approximately 2 weeks",
+      "source": "nutrition",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Captures the duration while preserving the approximate qualifier ("about two weeks" -> "approximately 2 weeks"). Does NOT strip the approximate qualifier.
+
+---
+
+### Test Case 6.6 (Day 7 Case 6): Temporal decline
+- **Conversation**:
+  - *User*: "Earlier this month I was sleeping around six hours. This week it's down to four hours because assignments are keeping me up."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Sleep decreased from approximately 6 hours/night earlier this month to 4 hours/night this week, associated with assignment workload",
+      "value": "4 hours/night",
+      "duration": "this week",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Synthesizes the sleep decline (from 6h to 4h) into ONE record with current value `4 hours/night` and assignment context.
+
+---
+
+### Test Case 6.7 (Day 7 Case 7): Distinct temporal phenomena
+- **Conversation**:
+  - *User*: "My sleep has improved this week, but my appetite has been getting worse for about two weeks."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reported improvement in sleep",
+      "duration": "this week",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    },
+    {
+      "category": "appetite",
+      "summary": "Worsening appetite over recent weeks",
+      "duration": "approximately 2 weeks",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Distinct phenomena (sleep improvement vs. appetite worsening) remain 2 separate records despite different temporal trajectories.
+
+---
+
+### Test Case 6.8 (Day 7 Case 8): Source integrity
+- **Conversation**:
+  - *User*: "I've been sleeping only five hours lately because my meal schedule keeps me up late."
+- **Source**: `nutrition`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reduced sleep associated with late meal schedule",
+      "value": "5 hours/night",
+      "source": "nutrition",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Even though category is `sleep`, the `source` field MUST strictly remain `nutrition` because the conversation originated from Nutrition AI.
+
+---
+
+### Test Case 6.9 (Day 7 Case 9): Multi-turn transcript & Calendar-Relative Duration
+- **Conversation (Transcript Turns)**:
+  - *User*: "I'm sleeping only three hours."
+  - *Assistant*: "Has that been happening every night?"
+  - *User*: "Actually I exaggerated — it's closer to five hours, mostly this week."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reduced sleep duration",
+      "value": "approximately 5 hours/night",
+      "duration": "this week",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Demonstrates multi-turn handling. User's self-correction ("closer to five hours, mostly this week") is extracted as current truth; calendar-relative duration "this week" is preserved as "this week" and NOT converted to "1 week". Assistant questions are context, NOT patient facts.
+
+---
+
+## 7. Doctor Retrieval Scenarios
+
+### Scenario 7.1: Longitudinal Context Retrieval
 - **Patient Context State**: Context records from both Nutrition AI and Mental Wellness AI over a 3-week period.
 - **Doctor Query**: "Retrieve sleep and diet changes over the past month for Patient PAT-89210."
 - **Expected Output**: Chronologically grouped context summarizing stress-sleep-appetite correlation.
@@ -387,7 +579,7 @@ The following 7 synthetic test cases validate CCEE's semantic compression and re
 
 ---
 
-### Scenario 6.2: Doctor Consultation Entry & Decision Support
+### Scenario 7.2: Doctor Consultation Entry & Decision Support
 - **Doctor Consultation Input**: "Patient presents with persistent fatigue and mild epigastric discomfort."
 - **Doctor AI Response**: Synthesizes patient-reported breakfast skipping and exam stress with clinician findings, providing context without autonomous diagnosis.
 - **Notes / Manual Test Log**: *(Space reserved for test execution logs)*
