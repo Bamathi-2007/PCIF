@@ -20,7 +20,7 @@ import os
 import sys
 import time
 import json
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union, cast
 
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -220,6 +220,15 @@ def run_live_gemini_day7_tests():
         raw_text = case["text"]
         source = str(case["source"])
 
+        # Type-safe conversation argument for extract_context
+        conv_arg: Union[str, List[Dict[str, Any]]]
+        if isinstance(raw_text, str):
+            conv_arg = raw_text
+        elif isinstance(raw_text, list):
+            conv_arg = cast(List[Dict[str, Any]], raw_text)
+        else:
+            conv_arg = str(raw_text)
+
         print(f"\nEvaluating {case_id}: {name}")
         print(f"  Source: {source}")
         print(f"  Input: {raw_text}")
@@ -237,7 +246,7 @@ def run_live_gemini_day7_tests():
         for attempt in range(1, max_retries + 1):
             try:
                 start_t = time.time()
-                items = ccee_engine.extract_context(raw_text, source)
+                items = ccee_engine.extract_context(conv_arg, source)
                 elapsed = time.time() - start_t
                 last_err = None
                 break
@@ -274,21 +283,22 @@ def run_live_gemini_day7_tests():
         failure_reasons = []
 
         # 1. Item count check
-        if "expected_count" in case:
-            expected_count = case.get("expected_count", 0)
-            if len(items) != expected_count:
+        exp_count_val = case.get("expected_count")
+        if isinstance(exp_count_val, int):
+            if len(items) != exp_count_val:
                 checks_passed = False
-                failure_reasons.append(f"Expected {expected_count} items, got {len(items)}")
-        elif "min_expected_count" in case:
-            min_count = case.get("min_expected_count", 1)
-            if len(items) < min_count:
-                checks_passed = False
-                failure_reasons.append(f"Expected at least {min_count} items, got {len(items)}")
+                failure_reasons.append(f"Expected {exp_count_val} items, got {len(items)}")
+        else:
+            min_count_val = case.get("min_expected_count")
+            if isinstance(min_count_val, int):
+                if len(items) < min_count_val:
+                    checks_passed = False
+                    failure_reasons.append(f"Expected at least {min_count_val} items, got {len(items)}")
 
         # 2. Categories check
         actual_categories = [item.category for item in items]
         exp_cat_raw = case.get("expected_categories", [])
-        expected_categories: List[str] = exp_cat_raw if isinstance(exp_cat_raw, list) else []
+        expected_categories: List[str] = [str(x) for x in exp_cat_raw] if isinstance(exp_cat_raw, list) else []
         for exp_cat in expected_categories:
             if exp_cat not in actual_categories:
                 checks_passed = False
@@ -304,11 +314,11 @@ def run_live_gemini_day7_tests():
 
         # 4. Check expected text markers (must_contain)
         must_contain_raw = case.get("must_contain", [])
-        must_contain: List[str] = must_contain_raw if isinstance(must_contain_raw, list) else []
+        must_contain: List[str] = [str(x) for x in must_contain_raw] if isinstance(must_contain_raw, list) else []
         if must_contain:
             found_any = False
             for marker in must_contain:
-                if isinstance(marker, str) and any(
+                if any(
                     marker.lower() in (item.value or "").lower() or marker.lower() in item.summary.lower()
                     for item in items
                 ):
