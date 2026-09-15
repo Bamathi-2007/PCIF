@@ -74,7 +74,7 @@ class ClinicalContextExtractionEngine:
             logger.error(f"CCEE extraction error: {e}", exc_info=True)
             # Re-raise rate limits so caller/evaluator is aware
             error_str = str(e)
-            if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+            if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str or "503" in error_str or "UNAVAILABLE" in error_str:
                 raise
             # Return empty list for other controlled extraction failures
             return []
@@ -94,7 +94,33 @@ class ClinicalContextExtractionEngine:
                 logger.warning(f"Discarding invalid context item {raw}: {ve}")
                 continue
 
-        return validated_items
+        # Minimal deterministic safeguard: eliminate duplicate extractions of identical category and summary
+        return self._deduplicate_items(validated_items)
+
+    @staticmethod
+    def _deduplicate_items(items: List[ClinicalContextItem]) -> List[ClinicalContextItem]:
+        """
+        Minimal deterministic post-validation safeguard: removes exact or near-identical
+        duplicate items sharing the same category and normalized summary within the current extraction.
+        Preserves richer value/duration if present.
+        """
+        unique_items: List[ClinicalContextItem] = []
+        seen_keys = set()
+
+        for item in items:
+            key = (item.category, item.summary.strip().lower())
+            if key not in seen_keys:
+                seen_keys.add(key)
+                unique_items.append(item)
+            else:
+                # If seen, merge value or duration into existing item if missing
+                existing = next(i for i in unique_items if (i.category, i.summary.strip().lower()) == key)
+                if not existing.value and item.value:
+                    existing.value = item.value
+                if not existing.duration and item.duration:
+                    existing.duration = item.duration
+
+        return unique_items
 
     @staticmethod
     def _normalize_conversation(conversation: Union[str, List[Dict[str, Any]]]) -> str:

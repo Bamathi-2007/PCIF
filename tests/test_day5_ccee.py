@@ -239,10 +239,10 @@ def run_live_gemini_tests():
     results = []
 
     for i, case in enumerate(day4_cases + day5_cases):
-        case_id = case["id"]
-        name = case["name"]
-        text = case["text"]
-        source = case["source"]
+        case_id = str(case["id"])
+        name = str(case["name"])
+        text = str(case["text"])
+        source = str(case["source"])
 
         print(f"\nEvaluating Case {case_id}: {name}")
         print(f"  Source: {source}")
@@ -252,55 +252,34 @@ def run_live_gemini_tests():
         if i > 0:
             time.sleep(2.0)
 
-        try:
-            start_t = time.time()
-            items: List[ClinicalContextItem] = ccee_engine.extract_context(text, source)
-            elapsed = time.time() - start_t
+        # Retry loop for transient 503/429 Gemini API server spikes
+        max_retries = 5
+        items: List[ClinicalContextItem] = []
+        last_err = None
+        elapsed = 0.0
 
-            items_dict = [item.to_dict() for item in items]
-            print(f"  Extracted ({len(items)} items in {elapsed:.2f}s): {json.dumps(items_dict, indent=2)}")
-
-            # Assertions / Checks
-            if case.get("expect_empty"):
-                if len(items) == 0:
-                    status = "PASS"
-                    print(f"  ✓ PASS: Correctly returned empty list [] for irrelevant/non-clinical input.")
+        for attempt in range(1, max_retries + 1):
+            try:
+                start_t = time.time()
+                items = ccee_engine.extract_context(text, source)
+                elapsed = time.time() - start_t
+                last_err = None
+                break
+            except Exception as e:
+                last_err = e
+                err_str = str(e)
+                if ("503" in err_str or "UNAVAILABLE" in err_str or "429" in err_str) and attempt < max_retries:
+                    backoff = attempt * 4.0
+                    print(f"  [Attempt {attempt}/{max_retries} 503/429 spike, retrying in {backoff}s...]")
+                    time.sleep(backoff)
                 else:
-                    status = "FAIL"
-                    print(f"  ✗ FAIL: Expected empty list [], got {len(items)} items.")
-            else:
-                if len(items) == 0:
-                    status = "FAIL"
-                    print(f"  ✗ FAIL: Expected clinical items, got empty list.")
-                else:
-                    # Check prohibited diagnosis words if applicable
-                    prohibited = case.get("prohibited_words", [])
-                    found_prohibited = []
-                    for item in items:
-                        summary_lower = item.summary.lower()
-                        for pw in prohibited:
-                            if pw in summary_lower:
-                                found_prohibited.append(pw)
+                    break
 
-                    if found_prohibited:
-                        status = "FAIL"
-                        print(f"  ✗ FAIL: Prohibited diagnostic term inferred: {found_prohibited}")
-                    else:
-                        status = "PASS"
-                        print(f"  ✓ PASS: Valid clinical extraction conforming to constraints.")
-
-            results.append({
-                "id": case_id,
-                "name": name,
-                "status": status,
-                "items": items_dict,
-            })
-
-        except Exception as e:
-            err = str(e)
+        if last_err is not None:
+            err = str(last_err)
             print(f"  ✗ ERROR: {err}")
-            if "429" in err or "RESOURCE_EXHAUSTED" in err:
-                status = "RATE_LIMITED"
+            if "429" in err or "RESOURCE_EXHAUSTED" in err or "503" in err or "UNAVAILABLE" in err:
+                status = "RATE_LIMITED_OR_UNAVAILABLE"
             else:
                 status = "ERROR"
             results.append({
@@ -309,6 +288,47 @@ def run_live_gemini_tests():
                 "status": status,
                 "error": err,
             })
+            continue
+
+        items_dict = [item.to_dict() for item in items]
+        print(f"  Extracted ({len(items)} items in {elapsed:.2f}s): {json.dumps(items_dict, indent=2)}")
+
+        # Assertions / Checks
+        if case.get("expect_empty"):
+            if len(items) == 0:
+                status = "PASS"
+                print(f"  ✓ PASS: Correctly returned empty list [] for irrelevant/non-clinical input.")
+            else:
+                status = "FAIL"
+                print(f"  ✗ FAIL: Expected empty list [], got {len(items)} items.")
+        else:
+            if len(items) == 0:
+                status = "FAIL"
+                print(f"  ✗ FAIL: Expected clinical items, got empty list.")
+            else:
+                # Check prohibited diagnosis words if applicable
+                prohibited_raw = case.get("prohibited_words", [])
+                prohibited: List[str] = prohibited_raw if isinstance(prohibited_raw, list) else []
+                found_prohibited = []
+                for item in items:
+                    summary_lower = item.summary.lower()
+                    for pw in prohibited:
+                        if isinstance(pw, str) and pw in summary_lower:
+                            found_prohibited.append(pw)
+
+                if found_prohibited:
+                    status = "FAIL"
+                    print(f"  ✗ FAIL: Prohibited diagnostic term inferred: {found_prohibited}")
+                else:
+                    status = "PASS"
+                    print(f"  ✓ PASS: Valid clinical extraction conforming to constraints.")
+
+        results.append({
+            "id": case_id,
+            "name": name,
+            "status": status,
+            "items": items_dict,
+        })
 
     print("\n" + "=" * 60)
     print("LIVE EVALUATION SUMMARY:")

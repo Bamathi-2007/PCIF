@@ -227,9 +227,159 @@ The following 5 synthetic edge cases validate clinical relevance filtering, mini
 
 ---
 
-## 5. Doctor Retrieval Scenarios
+## 5. CCEE Day 6 Synthetic Test Cases (Redundancy Reduction & Context Compression)
 
-### Scenario 5.1: Longitudinal Context Retrieval
+The following 7 synthetic test cases validate CCEE's semantic compression and redundancy reduction within a single conversation session. The goal is to store the minimum-sufficient context items needed to preserve clinically useful meaning while avoiding unnecessary entity splitting or duplicate records.
+
+---
+
+### Test Case 5.1 (Day 6 Case 1): Exact / repeated sleep meaning
+- **Conversation**:
+  - *User*: "I've been sleeping only five hours lately. Most nights I get about five hours because I'm studying late. My sleep has definitely reduced."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reduced sleep associated with late-night studying",
+      "value": "approximately 5 hours/night",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Multiple restatements of 5-hour sleep and late study consolidate into exactly ONE sleep item preserving ~5 hours/night.
+
+---
+
+### Test Case 5.2 (Day 6 Case 2): Stress as context, not independent record
+- **Conversation**:
+  - *User*: "I'm stressed about my exams and because of that I'm sleeping only four hours every night."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reduced sleep associated with exam stress",
+      "value": "4 hours/night",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Exam stress is folded into the sleep record as situational context/cause. Does NOT create an unnecessary separate stress record.
+
+---
+
+### Test Case 5.3 (Day 6 Case 3): Two genuinely distinct phenomena & Temporal Attachment
+- **Conversation**:
+  - *User*: "I'm sleeping only four hours and I've also lost my appetite this week."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reduced sleep",
+      "value": "4 hours/night",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    },
+    {
+      "category": "appetite",
+      "summary": "Reduced appetite",
+      "duration": "1 week",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Keeps distinct health phenomena (sleep impairment and appetite loss) cleanly separate. Attaches duration "1 week" strictly to appetite (the phenomenon it clearly describes) and does NOT propagate it to sleep.
+
+---
+
+### Test Case 5.4 (Day 6 Case 4): Repeated nutrition meaning
+- **Conversation**:
+  - *User*: "I keep skipping breakfast. I usually don't eat anything in the morning before college. Most weekdays I leave without breakfast because my first class is early."
+- **Source**: `nutrition`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "nutrition",
+      "summary": "Regularly skipping breakfast due to early college class schedule",
+      "source": "nutrition",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Consolidates three near-duplicate statements about skipping breakfast into ONE compressed nutrition item.
+
+---
+
+### Test Case 5.5 (Day 6 Case 5): Related hydration repetition & Uncertainty Preservation
+- **Conversation**:
+  - *User*: "I forget to drink water at college. Some days I only drink one glass. I stay busy and hardly drink water until evening."
+- **Source**: `nutrition`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "hydration",
+      "summary": "Low water intake due to forgetting during busy college routine",
+      "value": "1 glass on some days",
+      "source": "nutrition",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Merges repetitive low water intake remarks into ONE hydration record; preserves the episodic qualifier "on some days" without converting it into an absolute daily frequency (e.g. does NOT output "1 glass/day").
+
+---
+
+### Test Case 5.6 (Day 6 Case 6): Independent stress should remain
+- **Conversation**:
+  - *User*: "I feel overwhelmed throughout the entire day because of exams. I can't concentrate on normal tasks. I'm also sleeping around four hours at night."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "stress",
+      "summary": "Persistent daytime overwhelm and impaired concentration associated with exams",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    },
+    {
+      "category": "sleep",
+      "summary": "Reduced sleep",
+      "value": "approximately 4 hours/night",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Stress has independent daytime functional impact (inability to concentrate), so retaining TWO records (stress and sleep) is clinically justified.
+
+---
+
+### Test Case 5.7 (Day 6 Case 7): Irrelevant repetition
+- **Conversation**:
+  - *User*: "Hi. Hello again. By the way my favourite colour is yellow. I really like yellow."
+- **Source**: `nutrition`
+- **Expected Compact JSON**:
+  ```json
+  []
+  ```
+- **Notes**: Repetitive greetings and non-health preferences remain completely filtered out, returning an empty list `[]`.
+
+---
+
+## 6. Doctor Retrieval Scenarios
+
+### Scenario 6.1: Longitudinal Context Retrieval
 - **Patient Context State**: Context records from both Nutrition AI and Mental Wellness AI over a 3-week period.
 - **Doctor Query**: "Retrieve sleep and diet changes over the past month for Patient PAT-89210."
 - **Expected Output**: Chronologically grouped context summarizing stress-sleep-appetite correlation.
@@ -237,7 +387,7 @@ The following 5 synthetic edge cases validate clinical relevance filtering, mini
 
 ---
 
-### Scenario 5.2: Doctor Consultation Entry & Decision Support
+### Scenario 6.2: Doctor Consultation Entry & Decision Support
 - **Doctor Consultation Input**: "Patient presents with persistent fatigue and mild epigastric discomfort."
 - **Doctor AI Response**: Synthesizes patient-reported breakfast skipping and exam stress with clinician findings, providing context without autonomous diagnosis.
 - **Notes / Manual Test Log**: *(Space reserved for test execution logs)*

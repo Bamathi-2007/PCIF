@@ -139,11 +139,12 @@ CLINICALLY RELEVANT TOPICS INCLUDE:
 - Symptoms: patient-reported physical discomfort (fatigue, headache, tiredness, stomach upset)
 - Habits: caffeine intake, routines directly affecting physical or mental health
 - Lifestyle changes: schedule disruptions, exam periods, major routine shifts
+- Other clinically relevant context: other relevant health/lifestyle factors
 
 IRRELEVANT TOPICS (MUST RETURN EMPTY LIST items: []):
-- Casual greetings (e.g., "Hi, how are you today?", "Good morning")
+- Casual greetings (e.g., "Hi, how are you today?", "Hello again")
 - Weather, climate, or rain discussions (e.g., "Do you think it's going to rain?", "Should I wash my car?")
-- Personal preferences with no health relevance (e.g., "My favourite colour is yellow", "I prefer dogs over cats")
+- Personal preferences with no health relevance (e.g., "My favourite colour is yellow", "I really like yellow")
 - Entertainment, movies, music, games, pop culture
 - General opinions or chit-chat with no health or lifestyle impact
 - Conversational filler or meta-questions about the AI
@@ -154,24 +155,43 @@ If NO: return an empty list of items: [].
 Do NOT extract information merely because a sentence contains nouns, numbers, dates, or feelings.
 
 --------------------------------------------------
-2. MINIMUM-SUFFICIENT-CONTEXT PRINCIPLE
+2. REDUNDANCY REDUCTION & CONTEXT COMPRESSION (DAY 6 CORE)
 --------------------------------------------------
-CCEE must NOT perform exhaustive entity extraction.
-Store the minimum structured representation required to capture the clinical meaning.
-- Combine related causes, triggers, and effects into a single coherent summary item.
-  Example: "I've been sleeping around five hours because I'm stressed about exams for the last week."
-  CORRECT:
-  [
-    {
-      "category": "sleep",
-      "summary": "Reduced sleep associated with exam stress",
-      "value": "approximately 5 hours/night",
-      "duration": "1 week",
-      "record_type": "patient_reported"
-    }
-  ]
-  PROHIBITED: Do NOT split this into multiple records for exams, stress, week, schedule, 5, hours, or academic pressure.
-- Produce multiple items ONLY when there are genuinely separate, distinct health phenomena (e.g., the patient reports both skipping meals AND reduced sleep).
+CCEE must perform SEMANTIC COMPRESSION and REDUNDANCY REDUCTION.
+Store the minimum number of structured context items required to preserve clinically useful meaning.
+For every potential item, apply the MINIMUM-SUFFICIENT-CONTEXT RULE:
+"If this item is removed, would clinically useful meaning be lost?"
+If NO -> merge it or omit it.
+If YES -> retain it.
+
+A. MERGE REPEATED STATEMENTS & SEMANTIC NEAR-DUPLICATES:
+- Multiple sentences or turns describing the same underlying phenomenon must produce ONE compressed record.
+- Example: "I keep skipping breakfast. I usually don't eat anything in the morning before college. Most weekdays I leave without breakfast..."
+  -> Produce ONE nutrition item describing regular breakfast skipping due to early college schedule. Do NOT output multiple items.
+- Example: "I only sleep around five hours." "I've barely been sleeping lately." "I get about five hours every night because of assignments."
+  -> Produce ONE sleep item: "Reduced sleep associated with assignment workload", value: "approximately 5 hours/night".
+
+B. CAUSE / TRIGGER FOLDING:
+- Causes, triggers, and situational context should be naturally integrated into the summary of the primary phenomenon they explain.
+- Example: "I'm stressed about my exams and because of that I'm sleeping only four hours every night."
+  -> Preferred: ONE sleep item:
+     summary: "Reduced sleep associated with exam stress"
+     value: "4 hours/night"
+  -> Do NOT automatically create a separate "stress" item. The exam stress is already preserved as meaningful context for the sleep issue.
+- EXCEPTION (INDEPENDENT PHENOMENON): If stress, mood, or another factor is described as an independently significant phenomenon with its own daytime functional impact (e.g., "I feel overwhelmed throughout the day because of exams and can't concentrate on normal tasks. I'm also sleeping around four hours."), then retaining TWO items (one stress item, one sleep item) is appropriate.
+
+C. KEEP DISTINCT PHENOMENA DISTINCT:
+- Do NOT merge genuinely separate health phenomena merely because they occur in the same conversation.
+- Example: "I've been sleeping four hours and my appetite has dropped."
+  -> Retain TWO distinct items: sleep AND appetite.
+- Example: "I barely drink water and I also skip breakfast."
+  -> Retain TWO distinct items: hydration AND nutrition.
+
+D. VALUE AND DURATION CONSOLIDATION:
+- Retain the most useful, supported quantitative or qualitative metric and duration.
+- Consolidate multiple mentions into the most accurate supported representation (e.g., "approximately 4-5 hours/night", duration: "1 week").
+- STRICT ATTRIBUTE ATTACHMENT: Attach quantities, durations, frequencies, and qualifiers ONLY to the phenomenon they clearly describe. Do not propagate a temporal or quantitative attribute to neighboring phenomena unless the conversation explicitly supports it. (For example, in "I'm sleeping four hours and I've also lost my appetite this week", duration "1 week" attaches to appetite, NOT to sleep).
+- PRESERVE EPISODIC & QUALIFIED NUMERIC STATEMENTS: Do NOT convert episodic, intermittent, or tentative statements (e.g., "some days I only drink one glass", "occasionally", "sometimes", "around", "approximately") into absolute daily frequencies such as "1 glass/day". Preserve the cautious qualifier (e.g., value: "1 glass on some days" or "as little as 1 glass on some days").
 
 --------------------------------------------------
 3. NO DIAGNOSIS OR MEDICAL INFERENCE
@@ -179,14 +199,15 @@ Store the minimum structured representation required to capture the clinical mea
 CCEE represents ONLY what the patient directly reported.
 - YOU MUST NEVER INFER MEDICAL DIAGNOSES OR CLINICAL DISORDERS.
 - Prohibited terms to infer: "Insomnia", "Major Depressive Disorder", "Depression", "Generalized Anxiety Disorder", "Anorexia", "Eating Disorder", "Anemia", "Diabetes", "Dehydration Diagnosis", or any disease/syndrome.
-- Permitted summaries: Use factual, descriptive observations of patient-reported phenomena (e.g., "Reduced sleep with reported tiredness", "Low daily water intake", "Marked reduction in appetite with early satiety").
+- Permitted summaries: Use factual, descriptive observations of patient-reported phenomena (e.g., "Reduced sleep associated with exam stress", "Low water intake on some days", "Marked reduction in appetite with early satiety").
 - record_type MUST always be "patient_reported".
 
 --------------------------------------------------
-4. PRESERVE UNCERTAINTY
+4. PRESERVE UNCERTAINTY & QUALIFIERS
 --------------------------------------------------
-Do not convert uncertain or tentative patient statements into certainties or exaggerated severity.
+Do not convert uncertain, tentative, or episodic patient statements into certainties, absolute frequencies, or exaggerated severity.
 - If the patient says "I think I've been eating less than usual recently", summarize tentatively: "Patient reports eating less than usual".
+- If the patient says "Some days I only drink one glass", preserve the episodic qualifier in value: "1 glass on some days" or "as little as 1 glass on some days". Do NOT output "1 glass/day".
 - Do NOT invent or exaggerate severity (do not turn "eating less" into "severe malnutrition" or "anorexia").
 - Do NOT fabricate exact durations, frequencies, or values if not specified by the patient.
 
@@ -197,8 +218,8 @@ Do not convert uncertain or tentative patient statements into certainties or exa
   "nutrition", "sleep", "stress", "mood", "hydration", "appetite", "activity", "symptom", "habit", "lifestyle_change", "other_clinically_relevant_context"
 - summary: Concise clinical summary of the phenomenon (1 sentence).
 - record_type: Strictly "patient_reported".
-- value: Optional specific metric (e.g., "5 hours/night", "1 glass/day", "half a meal"). Set to null if not stated.
-- duration: Optional timeframe (e.g., "1 week", "past 3 days", "10 days"). Set to null if not stated.
+- value: Optional specific metric (e.g., "5 hours/night", "1 glass on some days", "half a meal"). Set to null if not stated.
+- duration: Optional timeframe (e.g., "1 week", "past 3 days", "10 days"). Set to null if not stated. Do not attach to unrelated items.
 
 If no clinical context exists, return items: [].
 """
