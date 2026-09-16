@@ -93,6 +93,8 @@ class ClinicalContextItem:
     duration: Optional[str] = None
 
     def __post_init__(self):
+        if not self.summary or not isinstance(self.summary, str) or not self.summary.strip():
+            raise ValueError("Summary must be a non-empty string.")
         if self.source not in ALLOWED_SOURCES:
             raise ValueError(
                 f"Invalid source '{self.source}'. Allowed sources: {ALLOWED_SOURCES}"
@@ -123,6 +125,13 @@ class ClinicalContextItem:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ClinicalContextItem":
         """Builds a ClinicalContextItem from a dictionary."""
+        # Sanitize summary
+        summary = data.get("summary")
+        if summary is None or not isinstance(summary, str):
+            summary = ""
+        else:
+            summary = summary.strip()
+
         # Sanitize value and duration: treat empty string or whitespace as None
         value = data.get("value")
         if value is not None and isinstance(value, str) and not value.strip():
@@ -133,10 +142,11 @@ class ClinicalContextItem:
 
         return cls(
             category=data.get("category", ""),
-            summary=data.get("summary", ""),
+            summary=summary,
             source=data.get("source", ""),
             record_type=data.get("record_type", "patient_reported"),
             value=value,
             duration=duration,
         )
+
 

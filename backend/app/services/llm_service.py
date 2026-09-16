@@ -172,7 +172,8 @@ class GeminiLLMService:
         client = self._get_client()
         if client is None:
             logger.warning("Gemini client unavailable: GEMINI_API_KEY is not configured.")
-            return []
+            raise RuntimeError("Gemini client unavailable: GEMINI_API_KEY is not configured in backend environment.")
+
 
         model_name = os.getenv("GEMINI_MODEL", settings.GEMINI_MODEL) or "gemini-3.8-flash"
 
@@ -202,10 +203,11 @@ class GeminiLLMService:
             raw_text = response.text or "{}"
             data = json.loads(raw_text)
 
-            raw_items = data.get("items", [])
-            if not isinstance(raw_items, list):
-                logger.warning(f"Unexpected CCEE response structure: {raw_text}")
-                return []
+            if not isinstance(data, dict) or "items" not in data or not isinstance(data.get("items"), list):
+                logger.error(f"Malformed CCEE response structure: {raw_text}")
+                raise RuntimeError(f"CCEE extraction failed: Malformed top-level JSON response structure: {raw_text}")
+
+            raw_items = data["items"]
 
             cleaned_items: List[Dict[str, Any]] = []
             for item in raw_items:

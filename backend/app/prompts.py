@@ -170,12 +170,9 @@ A. MERGE REPEATED STATEMENTS & SEMANTIC NEAR-DUPLICATES:
   -> Produce ONE nutrition item describing regular breakfast skipping due to early college schedule. Do NOT output multiple items.
 
 B. CAUSE / TRIGGER FOLDING:
-- Causes, triggers, and situational context should be naturally integrated into the summary of the primary phenomenon they explain.
-- Example: "I'm stressed about my exams and because of that I'm sleeping only four hours every night."
-  -> Preferred: ONE sleep item:
-     summary: "Reduced sleep associated with exam stress"
-     value: "4 hours/night"
-  -> Do NOT automatically create a separate "stress" item unless stress has independent daytime functional impact (e.g. daytime overwhelm and inability to concentrate).
+- Causes, triggers, and situational context (such as exam stress, work pressure, or schedule shifts) should be naturally integrated into the summary of the primary phenomenon they explain (e.g., "Reduced sleep associated with exam stress", "Skipping meals due to early college schedule").
+- CRITICAL STRESS FOLDING RULE: In "I've been skipping meals this week and sleeping only four hours because I'm stressed about exams", exam stress is ONLY the reported cause/trigger. You MUST output exactly TWO items (nutrition + sleep folding exam stress). You MUST NOT create a 3rd standalone stress record.
+- Do NOT create a separate "stress" item when stress is reported only as the cause or trigger of sleep reduction or meal skipping, UNLESS the patient explicitly reports independent daytime functional impact (e.g., persistent daytime overwhelm throughout the day, inability to concentrate on normal tasks).
 
 C. KEEP DISTINCT PHENOMENA DISTINCT:
 - Do NOT merge genuinely separate health phenomena merely because they occur in the same conversation.
@@ -184,8 +181,16 @@ C. KEEP DISTINCT PHENOMENA DISTINCT:
 
 D. VALUE AND DURATION CONSOLIDATION:
 - Retain the most useful, supported quantitative or qualitative metric and duration.
-- STRICT ATTRIBUTE ATTACHMENT: Attach quantities, durations, frequencies, and qualifiers ONLY to the phenomenon they clearly describe. Do not propagate a temporal or quantitative attribute to neighboring phenomena unless the conversation explicitly supports it. (For example, in "I'm sleeping four hours and I've also lost my appetite this week", duration "1 week" attaches to appetite, NOT to sleep).
+- STRICT ATTRIBUTE ATTACHMENT: Attach quantities, durations, frequencies, causes, and qualifiers ONLY to the specific phenomenon they directly modify. Do NOT propagate a temporal, causal, or quantitative attribute to neighboring phenomena unless the text explicitly supports it.
+- COORDINATED CLAUSE RULE: When multiple phenomena occur in coordinated clauses, attach temporal, quantitative, causal, frequency, and qualifier information only to the clause/phenomenon it grammatically and semantically modifies. Do not copy contextual attributes across 'and', 'but', or neighboring clauses unless explicitly shared.
+- EXAMPLE: In "I've been skipping meals this week and sleeping only four hours because I'm stressed about exams":
+  * "this week" modifies skipping meals ONLY (nutrition item duration: "this week").
+  * "because I'm stressed about exams" modifies sleeping four hours ONLY (sleep item summary: "Reduced sleep associated with exam stress"). Do NOT attach exam stress as the cause of skipping meals unless explicitly stated.
+  * Do NOT attach duration "this week" to sleep unless explicitly stated.
+- CRITICAL TEMPORAL ATTR RULE: In "I'm sleeping only four hours and I've also lost my appetite this week", the duration "this week" modifies appetite ONLY. The sleep item duration MUST be null (omitted). Do NOT output duration="this week" on the sleep item.
 - PRESERVE EPISODIC & QUALIFIED NUMERIC STATEMENTS: Do NOT convert episodic, intermittent, or tentative statements (e.g., "some days I only drink one glass", "occasionally", "sometimes", "around", "approximately") into absolute daily frequencies such as "1 glass/day". Preserve the cautious qualifier (e.g., value: "1 glass on some days" or "as little as 1 glass on some days").
+
+
 
 --------------------------------------------------
 3. TEMPORAL CONTEXT & SUPERSESSION HANDLING (DAY 7 CORE)
@@ -242,7 +247,17 @@ Do not convert uncertain, tentative, or episodic patient statements into certain
 - Do NOT fabricate exact durations, frequencies, or values if not specified by the patient.
 
 --------------------------------------------------
-6. FIELD SPECIFICATIONS
+7. PERSON ATTRIBUTION, HYPOTHETICALS & NEGATION SAFETY (DAY 8 HARDENING)
+--------------------------------------------------
+- PATIENT SELF-REPORT ONLY: Extract only information the patient directly reports about themselves.
+- HYPOTHETICAL STATEMENTS: Do not convert hypothetical questions, general inquiries, or quoted scenarios (e.g., "What happens if someone sleeps only three hours every night?") into patient facts. If input is purely hypothetical, return items: [].
+- THIRD-PERSON INFORMATION: Do not create patient context from third-party information about roommates, friends, family, or other people (e.g., "My roommate barely sleeps four hours because of exams"). Return items: [].
+- EXPLICIT NEGATION: Respect explicit negation. A denied symptom, behavior, or condition (e.g., "I am not having any appetite problems", "I'm not skipping meals") MUST NOT be extracted as an active patient problem.
+- NEGATED CANDIDATE FOLLOWED BY REAL ISSUE: If a patient negates one item but reports another (e.g., "I'm not skipping meals, but I barely drink water during college"), extract ONLY the real active issue (hydration). Do NOT create a record for the negated candidate.
+- ASSISTANT HYPOTHESIS REJECTION: Do not convert assistant-proposed questions or hypotheses into patient facts. If the assistant asks "Could this be because you're only sleeping four hours?" and the patient denies it ("No, I usually sleep around seven hours"), extract ONLY the supported patient statement (7 hours/night).
+
+--------------------------------------------------
+8. FIELD SPECIFICATIONS
 --------------------------------------------------
 - category: Must be strictly one of:
   "nutrition", "sleep", "stress", "mood", "hydration", "appetite", "activity", "symptom", "habit", "lifestyle_change", "other_clinically_relevant_context"
@@ -253,5 +268,3 @@ Do not convert uncertain, tentative, or episodic patient statements into certain
 
 If no clinical context exists, return items: [].
 """
-
-

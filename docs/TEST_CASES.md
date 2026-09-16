@@ -584,3 +584,168 @@ The following 9 synthetic test cases validate CCEE's understanding of temporal c
 - **Doctor AI Response**: Synthesizes patient-reported breakfast skipping and exam stress with clinician findings, providing context without autonomous diagnosis.
 - **Notes / Manual Test Log**: *(Space reserved for test execution logs)*
 
+---
+
+## 8. CCEE Day 8 Synthetic Hardening Test Cases
+
+The following 10 synthetic test cases validate CCEE's resilience against adversarial conversational inputs, person attribution errors, hypothetical questions, explicit negation, speaker attribution safety, and schema/engine boundary validation.
+
+---
+
+### Test Case 8.1 (Day 8 Case 1): Hypothetical health statement
+- **Conversation**:
+  - *User*: "What happens if someone sleeps only three hours every night?"
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  []
+  ```
+- **Notes**: Hypothetical inquiry with no patient self-report facts. Must yield an empty context list (`[]`). Must NOT extract sleep = 3 hours.
+
+---
+
+### Test Case 8.2 (Day 8 Case 2): Third-person information
+- **Conversation**:
+  - *User*: "My roommate barely sleeps four hours because of exams."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  []
+  ```
+- **Notes**: Describes another person (roommate), not the patient. Must yield an empty context list (`[]`).
+
+---
+
+### Test Case 8.3 (Day 8 Case 3): Mixed relevant + irrelevant information
+- **Conversation**:
+  - *User*: "My favourite colour is yellow. Anyway, I've been sleeping only five hours lately because of assignments."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reduced sleep associated with assignment workload",
+      "value": "approximately 5 hours/night",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Extracts exactly ONE sleep item while completely ignoring non-clinical favourite colour preference.
+
+---
+
+### Test Case 8.4 (Day 8 Case 4): Explicit negation
+- **Conversation**:
+  - *User*: "I am not having any appetite problems. I'm eating normally."
+- **Source**: `nutrition`
+- **Expected Compact JSON**:
+  ```json
+  []
+  ```
+- **Notes**: Explicit negation of appetite issue. Must NOT convert a denied problem into an active appetite issue.
+
+---
+
+### Test Case 8.5 (Day 8 Case 5): Negated candidate followed by real issue
+- **Conversation**:
+  - *User*: "I'm not skipping meals, but I barely drink water during college."
+- **Source**: `nutrition`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "hydration",
+      "summary": "Low water intake during college routine",
+      "source": "nutrition",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Extracts ONE hydration item. Must NOT create a nutrition/meal-skipping problem record.
+
+---
+
+### Test Case 8.6 (Day 8 Case 6): Corrected quantity
+- **Conversation**:
+  - *User*: "I drink maybe one glass of water a day — actually that's not right, probably closer to four glasses."
+- **Source**: `nutrition`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "hydration",
+      "summary": "Daily fluid intake",
+      "value": "approximately 4 glasses/day",
+      "source": "nutrition",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: LATER self-correction supersedes earlier figure. Value reflects approximately 4 glasses/day; 1 glass/day is NOT preserved as active truth.
+
+---
+
+### Test Case 8.7 (Day 8 Case 7): Unsupported causal inference
+- **Conversation**:
+  - *User*: "I've been tired lately and I also haven't been sleeping much."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reduced sleep with reported tiredness",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Represents only supported patient facts. Must NOT claim "Sleep deprivation caused fatigue" unless explicitly stated by the patient. No diagnosis.
+
+---
+
+### Test Case 8.8 (Day 8 Case 8): Assistant hypothesis rejection
+- **Conversation (Transcript Turns)**:
+  - *User*: "I've been tired lately."
+  - *Assistant*: "Could this be because you're only sleeping four hours?"
+  - *User*: "No, I usually sleep around seven hours."
+- **Source**: `mental_wellness`
+- **Expected Compact JSON**:
+  ```json
+  [
+    {
+      "category": "sleep",
+      "summary": "Reported tiredness despite normal sleep",
+      "value": "approximately 7 hours/night",
+      "source": "mental_wellness",
+      "record_type": "patient_reported"
+    }
+  ]
+  ```
+- **Notes**: Assistant hypothesis (4 hours) is NOT patient evidence. Extracted value must reflect supported User statement (7 hours/night).
+
+---
+
+### Test Case 8.9 (Day 8 Case 9): Empty / whitespace input
+- **Conversation**:
+  - *User*: "   "
+- **Source**: `nutrition`
+- **Expected Compact JSON**:
+  ```json
+  []
+  ```
+- **Notes**: Handled locally by engine pre-filtering; returns `[]` without triggering an LLM call.
+
+---
+
+### Test Case 8.10 (Day 8 Case 10): Invalid source validation
+- **Conversation**:
+  - *User*: "I sleep five hours."
+- **Source**: `fitness_ai`
+- **Expected Behavior**:
+  - Controlled engine exception (`ValueError: Invalid source 'fitness_ai'`).
+- **Notes**: System rejects unrecognized source stream without silently rewriting or accepting it.
+
+
