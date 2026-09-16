@@ -1,0 +1,1052 @@
+{
+  "total_cases": 36,
+  "total_evaluated": 36,
+  "passed_cases": 36,
+  "failed_cases": 0,
+  "inconclusive_api_cases": 0,
+  "overall_pass_rate_pct": 100.0,
+  "dimensions": {
+    "relevance_filtering": {
+      "passed": 35,
+      "total": 35,
+      "percentage": 100.0
+    },
+    "relevant_context_retention": {
+      "passed": 35,
+      "total": 35,
+      "percentage": 100.0
+    },
+    "compression_redundancy_control": {
+      "passed": 35,
+      "total": 35,
+      "percentage": 100.0
+    },
+    "distinct_phenomenon_preservation": {
+      "passed": 35,
+      "total": 35,
+      "percentage": 100.0
+    },
+    "unsupported_inference_prevention": {
+      "passed": 36,
+      "total": 36,
+      "percentage": 100.0
+    },
+    "evidence_preservation": {
+      "passed": 36,
+      "total": 36,
+      "percentage": 100.0
+    },
+    "temporal_reasoning": {
+      "passed": 36,
+      "total": 36,
+      "percentage": 100.0
+    },
+    "speaker_attribution_safety": {
+      "passed": 36,
+      "total": 36,
+      "percentage": 100.0
+    },
+    "source_integrity": {
+      "passed": 36,
+      "total": 36,
+      "percentage": 100.0
+    },
+    "schema_validity": {
+      "passed": 36,
+      "total": 36,
+      "percentage": 100.0
+    },
+    "context_sufficiency": {
+      "passed": 35,
+      "total": 35,
+      "percentage": 100.0
+    }
+  },
+  "case_details": [
+    {
+      "id": "Day 4 Case 3.1",
+      "name": "Skipped breakfast due early classes",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "nutrition",
+          "summary": "Regularly skipping breakfast due to early college lecture schedule.",
+          "source": "nutrition",
+          "record_type": "patient_reported"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 4 Case 3.2",
+      "name": "Reduced sleep due exam stress",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Reduced sleep associated with exam stress",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "around 5 hours/night",
+          "duration": "1 week"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 4 Case 3.3",
+      "name": "Reduced appetite for one week",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "appetite",
+          "summary": "Patient reports significant reduction in appetite and early satiety.",
+          "source": "nutrition",
+          "record_type": "patient_reported",
+          "value": "half a meal",
+          "duration": "past week"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 4 Case 3.4",
+      "name": "Low water intake",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "hydration",
+          "summary": "Patient reports low water intake due to being busy and forgetting to drink.",
+          "source": "nutrition",
+          "record_type": "patient_reported",
+          "value": "1 small glass"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 4 Case 3.5",
+      "name": "Irrelevant conversation (weather/car)",
+      "status": "PASS",
+      "items": [],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 5 Case 4.1",
+      "name": "Casual greeting",
+      "status": "PASS",
+      "items": [],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 5 Case 4.2",
+      "name": "Preference without health relevance",
+      "status": "PASS",
+      "items": [],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 5 Case 4.3",
+      "name": "Multiple meaningful phenomena",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "nutrition",
+          "summary": "Patient reports skipping meals.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "duration": "this week"
+        },
+        {
+          "category": "sleep",
+          "summary": "Reduced sleep associated with exam stress.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "4 hours/night"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 5 Case 4.4",
+      "name": "Unsupported diagnosis prevention & fatigue report",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "symptom",
+          "summary": "Patient reports feeling tired.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported"
+        },
+        {
+          "category": "sleep",
+          "summary": "Patient reports reduced sleep duration.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "4 hours/night"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 5 Case 4.5",
+      "name": "Uncertain self-report",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "appetite",
+          "summary": "Patient reports eating less than usual recently.",
+          "source": "nutrition",
+          "record_type": "patient_reported",
+          "duration": "recently"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 6 Case 5.1",
+      "name": "Exact/repeated sleep meaning",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Reduced sleep duration associated with late-night studying.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "approximately 5 hours/night",
+          "duration": "lately"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 6 Case 5.2",
+      "name": "Stress as context, not independent record",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Reduced sleep associated with exam stress",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "4 hours/night"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 6 Case 5.3",
+      "name": "Two distinct phenomena & temporal attachment",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Patient reports sleeping only four hours per night.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "4 hours/night"
+        },
+        {
+          "category": "appetite",
+          "summary": "Patient reports loss of appetite.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "duration": "this week"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 6 Case 5.4",
+      "name": "Repeated nutrition meaning",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "nutrition",
+          "summary": "Regularly skipping breakfast due to early morning college schedule.",
+          "source": "nutrition",
+          "record_type": "patient_reported"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 6 Case 5.5",
+      "name": "Related hydration repetition & uncertainty preservation",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "hydration",
+          "summary": "Patient reports low water intake during college hours due to busy schedule, often consuming as little as one glass on some days.",
+          "source": "nutrition",
+          "record_type": "patient_reported",
+          "value": "1 glass on some days"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 6 Case 5.6",
+      "name": "Independent stress should remain",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "stress",
+          "summary": "Patient reports feeling overwhelmed throughout the day and inability to concentrate on normal tasks due to exams.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported"
+        },
+        {
+          "category": "sleep",
+          "summary": "Reduced sleep duration.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "around 4 hours/night"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 6 Case 5.7",
+      "name": "Irrelevant repetition",
+      "status": "PASS",
+      "items": [],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 7 Case 6.1",
+      "name": "Explicit self-correction",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Patient reports sleeping approximately five hours per night.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "approximately 5 hours/night"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 7 Case 6.2",
+      "name": "Past -> current improvement",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Sleep improved from approximately 4 hours/night last week to approximately 7 hours/night currently.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "approximately 7 hours/night"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 7 Case 6.3",
+      "name": "Ongoing duration",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Patient reports reduced sleep duration.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "around 5 hours/night",
+          "duration": "past 2 weeks"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 7 Case 6.4",
+      "name": "Resolved insignificant past event",
+      "status": "PASS",
+      "items": [],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 7 Case 6.5",
+      "name": "Ongoing worsening appetite & approx duration",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "appetite",
+          "summary": "Patient reports a progressive decrease in appetite.",
+          "source": "nutrition",
+          "record_type": "patient_reported",
+          "duration": "approximately 2 weeks"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 7 Case 6.6",
+      "name": "Temporal decline",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Sleep decreased from approximately 6 hours/night earlier this month to 4 hours/night this week, associated with assignment workload.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "4 hours/night",
+          "duration": "this week"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 7 Case 6.7",
+      "name": "Distinct temporal phenomena",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Patient reports improvement in sleep quality this week.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "duration": "this week"
+        },
+        {
+          "category": "appetite",
+          "summary": "Patient reports a worsening trend in appetite.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "duration": "about two weeks"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 7 Case 6.8",
+      "name": "Source integrity",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Reduced sleep duration associated with late-night meal schedule",
+          "source": "nutrition",
+          "record_type": "patient_reported",
+          "value": "5 hours/night",
+          "duration": "lately"
+        },
+        {
+          "category": "nutrition",
+          "summary": "Late-night meal schedule affecting sleep",
+          "source": "nutrition",
+          "record_type": "patient_reported"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 7 Case 6.9",
+      "name": "Multi-turn transcript & calendar-relative duration",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Patient reports sleeping approximately five hours per night.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "5 hours/night",
+          "duration": "this week"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 8 Case 8.1",
+      "name": "Hypothetical health statement",
+      "status": "PASS",
+      "items": [],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 8 Case 8.2",
+      "name": "Third-person information",
+      "status": "PASS",
+      "items": [],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 8 Case 8.3",
+      "name": "Mixed relevant + irrelevant information",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "sleep",
+          "summary": "Reduced sleep associated with assignment workload",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "5 hours/night",
+          "duration": "lately"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 8 Case 8.4",
+      "name": "Explicit negation",
+      "status": "PASS",
+      "items": [],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 8 Case 8.5",
+      "name": "Negated candidate followed by real issue",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "hydration",
+          "summary": "Patient reports low water intake during college hours.",
+          "source": "nutrition",
+          "record_type": "patient_reported",
+          "value": "barely drink water"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 8 Case 8.6",
+      "name": "Corrected quantity",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "hydration",
+          "summary": "Patient reports daily water intake.",
+          "source": "nutrition",
+          "record_type": "patient_reported",
+          "value": "approximately 4 glasses/day"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 8 Case 8.7",
+      "name": "Unsupported causal inference",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "symptom",
+          "summary": "Patient reports feeling tired lately.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "duration": "lately"
+        },
+        {
+          "category": "sleep",
+          "summary": "Patient reports not sleeping much lately.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "duration": "lately"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 8 Case 8.8",
+      "name": "Assistant hypothesis rejection",
+      "status": "PASS",
+      "items": [
+        {
+          "category": "symptom",
+          "summary": "Patient reports feeling tired lately.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "duration": "lately"
+        },
+        {
+          "category": "sleep",
+          "summary": "Patient reports typical sleep duration.",
+          "source": "mental_wellness",
+          "record_type": "patient_reported",
+          "value": "around 7 hours/night"
+        }
+      ],
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 8 Case 8.9",
+      "name": "Empty / whitespace input",
+      "status": "PASS",
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": true,
+        "relevant_context_retention": true,
+        "compression_redundancy_control": true,
+        "distinct_phenomenon_preservation": true,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": true
+      }
+    },
+    {
+      "id": "Day 8 Case 8.10",
+      "name": "Invalid source validation",
+      "status": "PASS",
+      "reasons": [],
+      "dimension_results": {
+        "relevance_filtering": null,
+        "relevant_context_retention": null,
+        "compression_redundancy_control": null,
+        "distinct_phenomenon_preservation": null,
+        "unsupported_inference_prevention": true,
+        "evidence_preservation": true,
+        "temporal_reasoning": true,
+        "speaker_attribution_safety": true,
+        "source_integrity": true,
+        "schema_validity": true,
+        "context_sufficiency": null
+      }
+    }
+  ]
+}
