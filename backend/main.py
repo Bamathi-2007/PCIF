@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.config import settings
 from backend.app.api import patient, nutrition, mental_wellness, ccee, doctor
-from database.mongodb import MongoDBManager
+from database.mongodb import db_manager
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -23,9 +23,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Database Manager Placeholder instance
-db_manager = MongoDBManager(uri=settings.MONGODB_URI, db_name=settings.MONGODB_DB_NAME)
-
 # Include API Routers
 app.include_router(patient.router, prefix="/api")
 app.include_router(nutrition.router, prefix="/api")
@@ -39,7 +36,7 @@ async def root():
     """Root Endpoint."""
     return {
         "project": "PCIF - Patient Context Intelligence Framework",
-        "status": "Day 1 Setup Active",
+        "status": "Day 9 Shared Database Active",
         "docs_url": "/docs"
     }
 
