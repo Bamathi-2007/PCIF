@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, ArrowUp, AlertCircle, Brain, User } from 'lucide-react';
 import mindfulnessStudyImg from '../assets/mindfulness_study.jpg';
+import { getOrCreatePatientSessionId } from '../utils/patientSession';
 
 export default function MentalWellnessAIPage({ setActiveTab }) {
   const [messages, setMessages] = useState([
@@ -42,6 +43,8 @@ export default function MentalWellnessAIPage({ setActiveTab }) {
       content: m.text
     }));
 
+    const patientId = getOrCreatePatientSessionId();
+
     setMessages((prev) => [...prev, newUserMessage]);
     setInputValue('');
     setIsLoading(true);
@@ -53,6 +56,7 @@ export default function MentalWellnessAIPage({ setActiveTab }) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          patient_id: patientId,
           message: textToSend,
           history: historyPayload
         })

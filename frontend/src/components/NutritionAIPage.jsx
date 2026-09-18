@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, ArrowUp, AlertCircle, Sprout, User } from 'lucide-react';
 import nutritionStudyImg from '../assets/nutrition_study.jpg';
+import { getOrCreatePatientSessionId } from '../utils/patientSession';
 
 export default function NutritionAIPage({ setActiveTab }) {
   const [messages, setMessages] = useState([
@@ -42,6 +43,8 @@ export default function NutritionAIPage({ setActiveTab }) {
       content: m.text
     }));
 
+    const patientId = getOrCreatePatientSessionId();
+
     setMessages((prev) => [...prev, newUserMessage]);
     setInputValue('');
     setIsLoading(true);
@@ -53,6 +56,7 @@ export default function NutritionAIPage({ setActiveTab }) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          patient_id: patientId,
           message: textToSend,
           history: historyPayload
         })
