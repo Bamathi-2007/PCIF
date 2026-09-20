@@ -8,6 +8,7 @@ import os
 import json
 import logging
 from typing import Optional, List, Dict, Any, Literal
+from datetime import datetime
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from google import genai
@@ -18,6 +19,7 @@ from backend.app.prompts import (
     MENTAL_WELLNESS_SYSTEM_INSTRUCTION,
     CCEE_SYSTEM_INSTRUCTION,
     LONGITUDINAL_RELATION_SYSTEM_INSTRUCTION,
+    DOCTOR_CONTEXT_SYSTEM_INSTRUCTION,
 )
 from ccee.schema import CCEEExtractionResult
 
@@ -27,6 +29,25 @@ logger = logging.getLogger(__name__)
 class LongitudinalRelationResult(BaseModel):
     relation: Literal["duplicate", "update", "distinct"] = Field(
         description="Relationship classification: 'duplicate', 'update', or 'distinct'."
+    )
+
+
+class DoctorContextResponseSchema(BaseModel):
+    context_summary: str = Field(
+        default="",
+        description="Concise background summary synthesizing relevant context with current consultation."
+    )
+    relevant_current_context: List[str] = Field(
+        default_factory=list,
+        description="List of relevant active current patient-reported context statements."
+    )
+    relevant_longitudinal_changes: List[str] = Field(
+        default_factory=list,
+        description="List of relevant longitudinal shifts or trend observations over stored history."
+    )
+    items_to_verify: List[str] = Field(
+        default_factory=list,
+        description="List of discrepancies, items needing clinician verification, or important follow-ups."
     )
 
 
@@ -306,6 +327,102 @@ class GeminiLLMService:
         except Exception as e:
             logger.warning(f"Longitudinal relation classification error ({e}); defaulting safely to 'distinct'.")
             return "distinct"
+
+    def generate_doctor_context_assistance(
+        self,
+        patient_id: str,
+        consultation: str,
+        current_context: List[Dict[str, Any]],
+        longitudinal_history: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Generates doctor-facing contextual assistance synthesizing active current profile,
+        longitudinal context history, and current consultation details.
+        """
+        client = self._get_client()
+        if client is None:
+            logger.warning("Gemini client unavailable for doctor context assistance.")
+            return {
+                "context_summary": "Notice: Gemini API key is not configured. Contextual assistance is unavailable.",
+                "relevant_current_context": [],
+                "relevant_longitudinal_changes": [],
+                "items_to_verify": []
+            }
+
+        model_name = os.getenv("GEMINI_MODEL", settings.GEMINI_MODEL) or "gemini-3.8-flash"
+
+        # Clean current profile items (exclude internal MongoDB metadata)
+        clean_current = []
+        for doc in current_context:
+            clean_current.append({
+                "category": doc.get("category"),
+                "summary": doc.get("summary"),
+                "source": doc.get("source"),
+                "record_type": doc.get("record_type", "patient_reported"),
+                "value": doc.get("value"),
+                "duration": doc.get("duration"),
+            })
+
+        # Clean longitudinal history items
+        clean_history = []
+        for doc in longitudinal_history:
+            captured_at_val = doc.get("captured_at")
+            if isinstance(captured_at_val, datetime):
+                captured_at_str = captured_at_val.isoformat()
+            else:
+                captured_at_str = str(captured_at_val) if captured_at_val else None
+
+            clean_history.append({
+                "category": doc.get("category"),
+                "summary": doc.get("summary"),
+                "source": doc.get("source"),
+                "record_type": doc.get("record_type", "patient_reported"),
+                "value": doc.get("value"),
+                "duration": doc.get("duration"),
+                "is_current": doc.get("is_current", True),
+                "recorded_at": captured_at_str,
+            })
+
+        prompt = (
+            f"PATIENT ID: {patient_id}\n\n"
+            f"CURRENT CLINICIAN CONSULTATION NOTES:\n\"\"\"\n{consultation.strip()}\n\"\"\"\n\n"
+            f"ACTIVE CURRENT PATIENT-REPORTED CONTEXT PROFILE:\n{json.dumps(clean_current, indent=2)}\n\n"
+            f"LONGITUDINAL PATIENT-REPORTED CONTEXT HISTORY:\n{json.dumps(clean_history, indent=2)}\n\n"
+            "Analyze the above input according to your system instructions. "
+            "Synthesize relevant background context with the consultation notes and return a structured DoctorContextResponse JSON."
+        )
+
+        try:
+            config = types.GenerateContentConfig(
+                system_instruction=DOCTOR_CONTEXT_SYSTEM_INSTRUCTION,
+                response_mime_type="application/json",
+                response_schema=DoctorContextResponseSchema,
+                temperature=0.0,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
+            )
+
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=config,
+            )
+
+            raw_text = response.text or "{}"
+            data = json.loads(raw_text)
+
+            return {
+                "context_summary": data.get("context_summary", ""),
+                "relevant_current_context": data.get("relevant_current_context", []),
+                "relevant_longitudinal_changes": data.get("relevant_longitudinal_changes", []),
+                "items_to_verify": data.get("items_to_verify", []),
+            }
+
+        except Exception as e:
+            error_str = str(e)
+            logger.error(f"Error generating doctor context assistance: {error_str}", exc_info=True)
+            if "RESOURCE_EXHAUSTED" in error_str or "429" in error_str:
+                raise RuntimeError(f"Gemini API rate limit reached (429): {error_str}") from e
+            raise RuntimeError(f"Doctor context assistance generation failed: {error_str}") from e
 
 
 llm_service = GeminiLLMService()
