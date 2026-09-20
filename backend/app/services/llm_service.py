@@ -7,7 +7,8 @@ and the stateless Gemini Interactions API (configured with store=False).
 import os
 import json
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -16,10 +17,17 @@ from backend.app.prompts import (
     NUTRITION_SYSTEM_INSTRUCTION,
     MENTAL_WELLNESS_SYSTEM_INSTRUCTION,
     CCEE_SYSTEM_INSTRUCTION,
+    LONGITUDINAL_RELATION_SYSTEM_INSTRUCTION,
 )
 from ccee.schema import CCEEExtractionResult
 
 logger = logging.getLogger(__name__)
+
+
+class LongitudinalRelationResult(BaseModel):
+    relation: Literal["duplicate", "update", "distinct"] = Field(
+        description="Relationship classification: 'duplicate', 'update', or 'distinct'."
+    )
 
 
 class GeminiLLMService:
@@ -227,6 +235,77 @@ class GeminiLLMService:
                 raise RuntimeError(f"Gemini API rate limit reached (429): {error_str}") from e
             # Controlled failure for other errors: log and re-raise or return empty list
             raise RuntimeError(f"CCEE extraction failed: {error_str}") from e
+
+    def classify_longitudinal_relation(
+        self,
+        existing_item: Dict[str, Any],
+        new_item: Dict[str, Any]
+    ) -> str:
+        """
+        Classifies the relationship between an existing active context record
+        and a newly extracted context item for the same patient.
+
+        Returns one of: 'duplicate', 'update', or 'distinct'.
+        Defaults to 'distinct' on any error, timeout, or missing Gemini client.
+        """
+        client = self._get_client()
+        if client is None:
+            logger.warning("Gemini client unavailable for longitudinal classification; defaulting to 'distinct'.")
+            return "distinct"
+
+        model_name = os.getenv("GEMINI_MODEL", settings.GEMINI_MODEL) or "gemini-3.8-flash"
+
+        # Sanitize items for structured prompt (exclude database metadata fields)
+        clean_existing = {
+            "category": existing_item.get("category"),
+            "summary": existing_item.get("summary"),
+            "value": existing_item.get("value"),
+            "duration": existing_item.get("duration"),
+            "source": existing_item.get("source"),
+        }
+        clean_new = {
+            "category": new_item.get("category"),
+            "summary": new_item.get("summary"),
+            "value": new_item.get("value"),
+            "duration": new_item.get("duration"),
+            "source": new_item.get("source"),
+        }
+
+        prompt = (
+            "EXISTING STORED ITEM:\n"
+            f"{json.dumps(clean_existing, indent=2)}\n\n"
+            "NEW ITEM:\n"
+            f"{json.dumps(clean_new, indent=2)}\n\n"
+            "Analyze the above two structured context items and determine their relation."
+        )
+
+        try:
+            config = types.GenerateContentConfig(
+                system_instruction=LONGITUDINAL_RELATION_SYSTEM_INSTRUCTION,
+                response_mime_type="application/json",
+                response_schema=LongitudinalRelationResult,
+                temperature=0.0,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
+            )
+
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=config,
+            )
+
+            raw_text = response.text or "{}"
+            data = json.loads(raw_text)
+            rel = data.get("relation", "").strip().lower()
+            if rel in ("duplicate", "update", "distinct"):
+                return rel
+
+            logger.warning(f"Unexpected relation response '{rel}', defaulting to 'distinct'.")
+            return "distinct"
+
+        except Exception as e:
+            logger.warning(f"Longitudinal relation classification error ({e}); defaulting safely to 'distinct'.")
+            return "distinct"
 
 
 llm_service = GeminiLLMService()

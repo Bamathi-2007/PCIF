@@ -11,6 +11,8 @@ or chat history objects are strictly prohibited from database persistence.
 
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
+from bson import ObjectId
+from bson.errors import InvalidId
 from pymongo import ASCENDING
 from pymongo.collection import Collection
 from pymongo.errors import PyMongoError
@@ -55,7 +57,7 @@ class PatientContextRepository:
     def prepare_document(patient_id: str, item: ClinicalContextItem) -> Dict[str, Any]:
         """
         Converts a ClinicalContextItem into a database document dictionary.
-        Attaches `patient_id` and UTC `captured_at` metadata.
+        Attaches `patient_id`, UTC `captured_at`, and default `is_current=True` metadata.
         Strictly enforces privacy by excluding forbidden raw conversation fields.
         """
         if not isinstance(item, ClinicalContextItem):
@@ -69,9 +71,10 @@ class PatientContextRepository:
             if key in doc:
                 raise ValueError(f"Privacy Violation: Forbidden raw conversation key '{key}' present in document.")
 
-        # Attach database metadata
+        # Attach database metadata (Day 11 longitudinal additions)
         doc["patient_id"] = patient_id
         doc["captured_at"] = datetime.now(timezone.utc)
+        doc["is_current"] = True
 
         return doc
 
@@ -116,7 +119,7 @@ class PatientContextRepository:
         self, patient_id: str
     ) -> List[Dict[str, Any]]:
         """
-        Retrieves all stored context records for a given patient_id.
+        Retrieves all stored context records for a given patient_id (full history).
         Records are ordered deterministically from oldest to newest by `captured_at`.
 
         Returns records with `_id` converted to string format.
@@ -134,6 +137,110 @@ class PatientContextRepository:
             return records
         except PyMongoError as e:
             raise RuntimeError(f"Database operation failed during get_patient_context: {e}") from e
+
+    def get_current_patient_context(
+        self, patient_id: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieves active/current context records for a given patient_id.
+        Matches records where `is_current == True` or `is_current` is missing (legacy records).
+        Ordered deterministically from oldest to newest by `captured_at`.
+
+        Returns records with `_id` converted to string format.
+        """
+        clean_patient_id = self._validate_patient_id(patient_id)
+        coll = self._get_coll()
+
+        try:
+            query = {
+                "patient_id": clean_patient_id,
+                "$or": [{"is_current": True}, {"is_current": {"$exists": False}}]
+            }
+            cursor = coll.find(query).sort("captured_at", ASCENDING)
+            records = []
+            for doc in cursor:
+                doc["_id"] = str(doc["_id"])
+                records.append(doc)
+            return records
+        except PyMongoError as e:
+            raise RuntimeError(f"Database operation failed during get_current_patient_context: {e}") from e
+
+    def get_current_context_candidates(
+        self, patient_id: str, source: str, category: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieves active/current records matching patient_id, source, and category.
+        Used to form the minimal candidate set for longitudinal deduplication / update classification.
+        """
+        clean_patient_id = self._validate_patient_id(patient_id)
+        coll = self._get_coll()
+
+        try:
+            query = {
+                "patient_id": clean_patient_id,
+                "source": source,
+                "category": category,
+                "$or": [{"is_current": True}, {"is_current": {"$exists": False}}]
+            }
+            cursor = coll.find(query).sort("captured_at", ASCENDING)
+            records = []
+            for doc in cursor:
+                doc["_id"] = str(doc["_id"])
+                records.append(doc)
+            return records
+        except PyMongoError as e:
+            raise RuntimeError(f"Database operation failed during get_current_context_candidates: {e}") from e
+
+    def mark_context_superseded(
+        self,
+        old_id: str,
+        new_id: str,
+        superseded_at: Optional[datetime] = None,
+        patient_id: Optional[str] = None,
+    ) -> bool:
+        """
+        Marks an existing context document as superseded by a newer record.
+
+        Sets:
+        - `is_current = False`
+        - `superseded_at = superseded_at or UTC now`
+        - `superseded_by = new_id`
+
+        Returns True if successful, False if document was not found or update failed.
+        Never leaks raw ObjectId types or raw stack traces.
+        """
+        if not old_id or not isinstance(old_id, str):
+            return False
+        if not new_id or not isinstance(new_id, str):
+            return False
+
+        coll = self._get_coll()
+        now_utc = superseded_at if superseded_at is not None else datetime.now(timezone.utc)
+
+        # Build query for single document matching old_id (support both ObjectId and string _id for mocks)
+        query: Dict[str, Any] = {}
+        try:
+            query["_id"] = ObjectId(old_id)
+        except (InvalidId, TypeError):
+            # Fallback for string _id (e.g. in mock environments)
+            query["_id"] = old_id
+
+        if patient_id and isinstance(patient_id, str) and patient_id.strip():
+            query["patient_id"] = patient_id.strip()
+
+        update_doc = {
+            "$set": {
+                "is_current": False,
+                "superseded_at": now_utc,
+                "superseded_by": new_id,
+            }
+        }
+
+        try:
+            result = coll.update_one(query, update_doc)
+            return result.modified_count > 0 or result.matched_count > 0
+        except PyMongoError as e:
+            raise RuntimeError(f"Database operation failed during mark_context_superseded: {e}") from e
 
     def delete_patient_context(
         self, patient_id: str
@@ -170,6 +277,23 @@ def save_context_items(patient_id: str, items: List[ClinicalContextItem]) -> Lis
 def get_patient_context(patient_id: str) -> List[Dict[str, Any]]:
     """Convenience wrapper for retrieving patient context history."""
     return _repository.get_patient_context(patient_id)
+
+
+def get_current_patient_context(patient_id: str) -> List[Dict[str, Any]]:
+    """Convenience wrapper for retrieving active patient context profile."""
+    return _repository.get_current_patient_context(patient_id)
+
+
+def get_current_context_candidates(patient_id: str, source: str, category: str) -> List[Dict[str, Any]]:
+    """Convenience wrapper for retrieving active context candidates."""
+    return _repository.get_current_context_candidates(patient_id, source, category)
+
+
+def mark_context_superseded(
+    old_id: str, new_id: str, superseded_at: Optional[datetime] = None, patient_id: Optional[str] = None
+) -> bool:
+    """Convenience wrapper for marking a record as superseded."""
+    return _repository.mark_context_superseded(old_id, new_id, superseded_at, patient_id)
 
 
 def delete_patient_context(patient_id: str) -> int:

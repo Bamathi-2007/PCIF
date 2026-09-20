@@ -97,6 +97,16 @@ class MongoDBManager:
                 [("patient_id", ASCENDING), ("captured_at", ASCENDING)],
                 background=True
             )
+            # Compound index for active longitudinal context queries
+            patient_context_coll.create_index(
+                [("patient_id", ASCENDING), ("is_current", ASCENDING), ("captured_at", ASCENDING)],
+                background=True
+            )
+            # Compound index for candidate lookup
+            patient_context_coll.create_index(
+                [("patient_id", ASCENDING), ("source", ASCENDING), ("category", ASCENDING)],
+                background=True
+            )
             self._indexes_created = True
         except Exception as e:
             # Safe index warning without exposing secrets

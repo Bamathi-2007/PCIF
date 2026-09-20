@@ -15,6 +15,9 @@ from database.patient_context_repository import (
     save_context_item,
     save_context_items,
     get_patient_context,
+    get_current_patient_context,
+    get_current_context_candidates,
+    mark_context_superseded,
     delete_patient_context,
 )
 
@@ -28,5 +31,8 @@ __all__ = [
     "save_context_item",
     "save_context_items",
     "get_patient_context",
+    "get_current_patient_context",
+    "get_current_context_candidates",
+    "mark_context_superseded",
     "delete_patient_context",
 ]

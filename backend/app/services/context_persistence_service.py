@@ -16,6 +16,10 @@ from typing import List, Dict, Any, Union, Optional
 
 from ccee.engine import ccee_engine, ClinicalContextExtractionEngine
 from database.patient_context_repository import PatientContextRepository, _repository
+from backend.app.services.longitudinal_context_service import (
+    LongitudinalContextService,
+    longitudinal_context_service,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,20 +29,24 @@ class ContextPersistenceResult:
     """Dataclass encapsulating context extraction & database persistence result."""
     status: str  # "saved", "no_relevant_context", "failed"
     saved_count: int = 0
+    duplicate_count: int = 0
+    superseded_count: int = 0
 
 
 class ContextPersistenceService:
     """
-    Service responsible for orchestrating CCEE extraction and MongoDB persistence.
+    Service responsible for orchestrating CCEE extraction and MongoDB longitudinal persistence.
     """
 
     def __init__(
         self,
         ccee: Optional[ClinicalContextExtractionEngine] = None,
-        repository: Optional[PatientContextRepository] = None
+        repository: Optional[PatientContextRepository] = None,
+        longitudinal_service: Optional[LongitudinalContextService] = None,
     ):
         self._ccee = ccee or ccee_engine
         self._repository = repository or _repository
+        self._longitudinal_service = longitudinal_service or longitudinal_context_service
 
     def extract_and_persist_context(
         self,
@@ -48,7 +56,7 @@ class ContextPersistenceService:
     ) -> ContextPersistenceResult:
         """
         Extracts clinical context items from the active conversation using CCEE,
-        validates the output, and persists valid items to MongoDB.
+        validates the output, and applies longitudinal consolidation before persisting to MongoDB.
 
         Args:
             patient_id (str): Explicit, non-empty patient identifier.
@@ -56,7 +64,7 @@ class ContextPersistenceService:
             source (str): Source AI module ('nutrition' or 'mental_wellness').
 
         Returns:
-            ContextPersistenceResult: Result object containing status and saved_count.
+            ContextPersistenceResult: Result object containing status and count metadata.
         """
         if not patient_id or not isinstance(patient_id, str) or not patient_id.strip():
             logger.error("Context persistence attempted with empty or missing patient_id.")
@@ -81,19 +89,30 @@ class ContextPersistenceService:
         if not items:
             return ContextPersistenceResult(status="no_relevant_context", saved_count=0)
 
-        # Step 3: Persist extracted ClinicalContextItem instances to MongoDB
+        # Step 3: Apply longitudinal consolidation & persistence
         try:
-            inserted_ids = self._repository.save_context_items(
+            long_res = self._longitudinal_service.save_longitudinal_context(
                 patient_id=clean_patient_id,
                 items=items
             )
+
+            # Determine response status
+            if long_res.inserted_count > 0 or long_res.duplicate_count > 0:
+                status = "saved"
+            elif long_res.failed_count > 0 and long_res.inserted_count == 0:
+                status = "failed"
+            else:
+                status = "saved"
+
             return ContextPersistenceResult(
-                status="saved",
-                saved_count=len(inserted_ids)
+                status=status,
+                saved_count=long_res.inserted_count,
+                duplicate_count=long_res.duplicate_count,
+                superseded_count=long_res.superseded_count,
             )
         except Exception as e:
             logger.error(
-                f"Context persistence failed during database insert for patient '{clean_patient_id}': {e}",
+                f"Context persistence failed during longitudinal processing for patient '{clean_patient_id}': {e}",
                 exc_info=True
             )
             return ContextPersistenceResult(status="failed", saved_count=0)

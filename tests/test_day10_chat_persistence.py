@@ -280,10 +280,11 @@ class TestDay10ChatPersistence(unittest.TestCase):
                     doc,
                     f"Privacy Violation: Forbidden raw chat key '{forbidden_key}' found in MongoDB document!"
                 )
-            # Verify only allowed fields exist
+            # Verify only allowed fields exist (schema + database metadata)
             allowed_keys = {
                 "_id", "patient_id", "category", "summary",
-                "source", "record_type", "value", "duration", "captured_at"
+                "source", "record_type", "value", "duration", "captured_at",
+                "is_current", "superseded_at", "superseded_by"
             }
             extra_keys = set(doc.keys()) - allowed_keys
             self.assertEqual(
