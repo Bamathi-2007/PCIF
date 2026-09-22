@@ -39,10 +39,10 @@ class PatientContextRepository:
     Repository for managing patient context persistence in MongoDB.
     """
 
-    def __init__(self, collection: Optional[Collection] = None):
+    def __init__(self, collection: Optional[Any] = None):
         self._collection = collection
 
-    def _get_coll(self) -> Collection:
+    def _get_coll(self) -> Any:
         if self._collection is not None:
             return self._collection
         return get_patient_context_collection()
