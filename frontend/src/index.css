@@ -707,3 +707,361 @@ body {
     gap: 8px;
   }
 }
+
+/* ==================== SCREEN 3: DOCTOR CLINICIAN CONTEXT WORKSPACE (Day 13) ==================== */
+/* All colours, fonts and radii reuse the existing PCIF design system variables. */
+
+/* Full page wrapper */
+.dr-page {
+  min-height: 100vh;
+  background-color: var(--bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.dr-header {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid var(--border-card);
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.dr-header-brand {
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+.dr-brand-title {
+  font-family: var(--font-serif);
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.dr-brand-sub {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-top: 3px;
+}
+
+.dr-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #D8EEE5;
+  color: var(--text-badge);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+}
+
+/* Two-column workspace */
+.dr-workspace {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 2rem 2rem 3rem;
+  display: grid;
+  grid-template-columns: 1fr 1.55fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Input Panel */
+.dr-input-panel {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.75rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: sticky;
+  top: 1.5rem;
+}
+
+.dr-panel-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dark);
+  margin-bottom: 0.25rem;
+}
+
+.dr-panel-heading {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+/* Fields */
+.dr-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dr-field-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-body);
+  letter-spacing: 0.2px;
+}
+
+.dr-text-input,
+.dr-textarea {
+  background-color: #E7F6F1;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  color: var(--text-dark);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  width: 100%;
+}
+
+.dr-textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.dr-text-input::placeholder,
+.dr-textarea::placeholder {
+  color: #72968E;
+}
+
+.dr-text-input:focus,
+.dr-textarea:focus {
+  border-color: #A3D4C5;
+  background-color: #EDF9F5;
+}
+
+.dr-text-input:disabled,
+.dr-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dr-input-error {
+  border-color: #E0726A !important;
+  background-color: #FDF5F4 !important;
+}
+
+.dr-field-error {
+  font-size: 0.79rem;
+  color: #C0392B;
+  font-weight: 500;
+}
+
+.dr-proto-note {
+  font-size: 0.74rem;
+  color: var(--text-subtle);
+  line-height: 1.4;
+}
+
+/* Generate button */
+.dr-generate-btn {
+  background-color: var(--primary-terracotta);
+  color: #FFFFFF;
+  font-size: 0.93rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 0.25rem;
+  transition: background-color 0.2s ease, opacity 0.15s ease;
+}
+
+.dr-generate-btn:hover:not(:disabled) {
+  background-color: var(--primary-terracotta-hover);
+}
+
+.dr-generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Spinning icon for loading state */
+@keyframes dr-spin {
+  to { transform: rotate(360deg); }
+}
+.dr-spin {
+  animation: dr-spin 0.9s linear infinite;
+}
+
+/* Results panel */
+.dr-results-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 300px;
+}
+
+/* Idle placeholder */
+.dr-idle-state {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border-pill);
+  padding: 2.75rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dr-idle-icon {
+  color: var(--text-subtle);
+  opacity: 0.5;
+}
+
+.dr-idle-text {
+  font-size: 0.9rem;
+  color: var(--text-body);
+  line-height: 1.6;
+  max-width: 380px;
+}
+
+/* Error banner */
+.dr-error-banner {
+  background-color: #FDF2F2;
+  border: 1px solid #F8D4D4;
+  color: #9B2C2C;
+  padding: 0.85rem 1.15rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+
+/* Patient-reported provenance */
+.dr-provenance-label {
+  background-color: #FDF8EC;
+  border: 1px solid #EDE3C0;
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 1rem;
+  font-size: 0.8rem;
+  color: #6B5A2B;
+  line-height: 1.5;
+}
+
+/* Result section cards */
+.dr-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.5rem 1.5rem 1.35rem;
+}
+
+/* Items-to-Verify card — slightly accented */
+.dr-card-verify {
+  border-color: #E8D9C6;
+  background-color: #FDFAF6;
+}
+
+.dr-section-heading {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.85rem;
+}
+
+.dr-summary-text {
+  font-size: 0.92rem;
+  color: var(--text-body);
+  line-height: 1.65;
+}
+
+/* Context item lists */
+.dr-context-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.dr-context-item {
+  font-size: 0.875rem;
+  color: var(--text-body);
+  line-height: 1.55;
+  padding: 0.55rem 0.85rem;
+  background-color: var(--bg-mint-soft);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--border-pill);
+}
+
+/* Items-to-Verify items */
+.dr-verify-item {
+  background-color: #FEF8F0;
+  border-left-color: #D4965A;
+}
+
+/* Empty state text inside cards */
+.dr-empty-state {
+  font-size: 0.875rem;
+  color: var(--text-subtle);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* Disclaimer block */
+.dr-disclaimer {
+  background-color: var(--bg-mint-soft);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.15rem;
+  font-size: 0.8rem;
+  color: var(--text-body);
+  line-height: 1.55;
+}
+
+/* ── Doctor Responsive Rules ── */
+@media (max-width: 900px) {
+  .dr-workspace {
+    grid-template-columns: 1fr;
+    padding: 1.25rem 1.25rem 2.5rem;
+  }
+  .dr-input-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .dr-header {
+    padding: 1rem 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+}

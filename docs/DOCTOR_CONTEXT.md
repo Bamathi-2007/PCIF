@@ -111,3 +111,73 @@ Day 12 establishes the **PCIF Condition** for comparative clinical evaluation ag
 
 > [!NOTE]
 > Comparative evaluation experiments will be conducted in subsequent phases. Day 12 establishes the technical infrastructure for the PCIF condition.
+
+---
+
+## 6. Day 13: Clinician Context Workspace (Frontend Interface)
+
+Day 13 adds a dedicated, clinician-facing web interface that connects to the Day 12 `POST /api/doctor/context` API.
+
+### Route
+
+The clinician interface is accessible at:
+
+```
+/doctor
+/doctor/
+```
+
+It is **not** linked from the patient-facing application (`/`). Access is direct by URL. The patient UI remains visually and functionally unchanged.
+
+### Input Fields
+
+| Field | Description |
+| :--- | :--- |
+| **Patient ID** | Manually entered patient identifier (e.g. `pcif_demo_7b5a8c1d`). Editing this field immediately clears any previously displayed results to prevent stale-patient display. |
+| **Current Consultation** | Clinician's current consultation notes. Transient — never stored, never persisted to localStorage or sessionStorage. |
+
+### Displayed Output
+
+All four structured fields from `assistant.*` plus `disclaimer` are rendered:
+
+| Section | Source field | Empty state |
+| :--- | :--- | :--- |
+| Context Summary | `assistant.context_summary` | "No summary was returned." |
+| Relevant Current Patient Context | `assistant.relevant_current_context` | "No relevant current patient-reported context was identified for this consultation." |
+| Longitudinal Context | `assistant.relevant_longitudinal_changes` | "No relevant longitudinal changes were identified." |
+| Items to Verify | `assistant.items_to_verify` | "No additional items were identified for verification." |
+| Disclaimer | `disclaimer` | Hidden if not present |
+
+### Patient-Reported Provenance
+
+A visible label is always shown alongside results:
+
+> **Patient-reported context:** Information shown here is derived from patient-reported Nutrition and Mental Wellness interactions. These records have not been clinically confirmed by a clinician.
+
+This label ensures the clinician understands the provenance and limits of the displayed context.
+
+### No Authentication (Prototype Limitation)
+
+> [!CAUTION]
+> This interface is a **prototype** and does not currently verify clinician identity or authorize access to patient identifiers. A supporting note is displayed in the UI: *"Prototype identifier only. Verified clinician authentication and patient lookup are not implemented."*
+>
+> Clinician authentication, role-based access control, and session management are not implemented in Day 13 and must be addressed before any production deployment.
+
+### No Patient Search
+
+There is no patient directory, patient search, or patient demographics database. The clinician manually enters the patient ID for prototype testing.
+
+### No Doctor-Note Persistence
+
+Day 13 is **read + assist only**. Consultation notes and generated context output are transient. No doctor-confirmed findings or clinical notes are persisted to MongoDB. This is planned for Day 14.
+
+### Error Behaviour
+
+On API or network failure, the interface:
+- Clears any stale patient context result
+- Displays a generic safe message: *"Unable to generate patient context right now. Please try again."*
+- Never exposes stack traces, MongoDB connection details, Gemini errors, or API keys
+
+### Design System
+
+The clinician interface reuses all existing PCIF design tokens: `--bg-page`, `--text-dark`, `--primary-terracotta`, `--font-serif` (Playfair Display), `--font-sans` (Plus Jakarta Sans). No new fonts or design frameworks were introduced.
