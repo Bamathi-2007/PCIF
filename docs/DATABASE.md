@@ -12,9 +12,9 @@ PCIF utilizes MongoDB as a shared, document-based longitudinal context store. Th
 
 | Collection Name | Role / Purpose | Implementation Status |
 | :--- | :--- | :--- |
-| `patient_context` | Stores validated CCEE clinical context items associated with patient IDs. | **Implemented & Active (Day 9/10)** |
+| `patient_context` | Stores validated CCEE clinical context items associated with patient IDs. | **Implemented & Active (Day 9/10/11)** |
 | `users` | Stores patient and doctor user accounts and profiles. | Documented (Deferred to future Auth) |
-| `doctor_notes` | Stores clinician consultation entries and confirmed findings. | Documented (Deferred to Day 12+) |
+| `doctor_notes` | Stores explicitly clinician-authored notes and confirmed findings. | **Implemented & Active (Day 14)** |
 
 ---
 
@@ -220,4 +220,15 @@ The repository automatically ensures the following background indexes exist:
 - **Explicit Resolution Limitation**: An empty CCEE extraction `[]` means "No new relevant context extracted from this turn". It does **not** mean previous clinical problems have resolved. PCIF does not automatically deactivate old records based on `[]`.
 - **Frozen CCEE Unchanged**: CCEE schema and extraction rules remain frozen from Day 5-8.
 - **Security & Privacy Wording**: Only structured CCEE context and storage metadata are persisted. Raw chat transcripts remain unpersisted.
+
+---
+
+## 11. Day 14 Clinician-Authored Note Persistence (`doctor_notes`)
+
+Day 14 implements dedicated persistence for explicitly clinician-authored notes in the isolated `doctor_notes` collection:
+- **Trust Boundary**: `patient_context` (`patient_reported`) and `doctor_notes` (`doctor_confirmed`) remain strictly separated in different collections.
+- **Append-Only**: Clinician notes are append-only; no CCEE processing or Day 11 consolidation is performed.
+- **Server-Controlled Provenance**: `record_type = "doctor_confirmed"` and `created_at` (UTC persistence timestamp) are strictly server-controlled.
+- **Detailed Specification**: See [`docs/DOCTOR_NOTES.md`](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/docs/DOCTOR_NOTES.md).
+
 

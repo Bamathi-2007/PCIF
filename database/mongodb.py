@@ -82,6 +82,13 @@ class MongoDBManager:
         db = self.get_database()
         return db[COLLECTION_PATIENT_CONTEXT]
 
+    def get_doctor_notes_collection(self) -> Collection:
+        """
+        Returns the `doctor_notes` collection instance.
+        """
+        db = self.get_database()
+        return db[COLLECTION_DOCTOR_NOTES]
+
     def ensure_indexes(self) -> None:
         """
         Ensures necessary indexes exist on collections.
@@ -107,6 +114,15 @@ class MongoDBManager:
                 [("patient_id", ASCENDING), ("source", ASCENDING), ("category", ASCENDING)],
                 background=True
             )
+
+            # Indexes for doctor_notes collection (Day 14)
+            doctor_notes_coll = self._db[COLLECTION_DOCTOR_NOTES]
+            doctor_notes_coll.create_index([("patient_id", ASCENDING)], background=True)
+            doctor_notes_coll.create_index(
+                [("patient_id", ASCENDING), ("created_at", ASCENDING)],
+                background=True
+            )
+
             self._indexes_created = True
         except Exception as e:
             # Safe index warning without exposing secrets
@@ -162,6 +178,12 @@ def get_patient_context_collection() -> Collection:
     return db_manager.get_patient_context_collection()
 
 
+def get_doctor_notes_collection() -> Collection:
+    """Convenience getter for doctor_notes collection."""
+    return db_manager.get_doctor_notes_collection()
+
+
 def ping_database() -> bool:
     """Convenience getter for database health ping."""
     return db_manager.ping_database()
+

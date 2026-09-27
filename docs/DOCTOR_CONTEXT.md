@@ -167,9 +167,10 @@ This label ensures the clinician understands the provenance and limits of the di
 
 There is no patient directory, patient search, or patient demographics database. The clinician manually enters the patient ID for prototype testing.
 
-### No Doctor-Note Persistence
+### Explicit Doctor-Note Persistence (Day 14)
 
-Day 13 is **read + assist only**. Consultation notes and generated context output are transient. No doctor-confirmed findings or clinical notes are persisted to MongoDB. This is planned for Day 14.
+Day 14 introduces explicit clinician-authored note persistence into the dedicated `doctor_notes` collection (`record_type = "doctor_confirmed"`). Clinician notes are stored separately from CCEE `patient_context` items (`record_type = "patient_reported"`). See [`docs/DOCTOR_NOTES.md`](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/docs/DOCTOR_NOTES.md) for complete details.
+
 
 ### Error Behaviour
 
