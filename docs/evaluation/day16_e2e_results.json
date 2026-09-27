@@ -1,0 +1,158 @@
+{
+  "day": 16,
+  "scope": "end_to_end_integration",
+  "synthetic_only": true,
+  "timestamp": "2026-09-27T15:08:22Z",
+  "execution_summary": {
+    "total_e2e_scenarios": 19,
+    "passed": 19,
+    "failed": 0,
+    "regression_tests_total": 83,
+    "regression_tests_passed": 83,
+    "frontend_build_status": "success"
+  },
+  "invariants_verified": {
+    "provenance_separation": {
+      "patient_reported": "patient_context",
+      "clinician_authored": "doctor_notes",
+      "transient_consultation": "in-memory only",
+      "silent_merges_detected": 0
+    },
+    "zero_raw_chat_persistence": {
+      "forbidden_keys_checked": [
+        "conversation",
+        "messages",
+        "history",
+        "raw_chat",
+        "full_transcript",
+        "assistant_response",
+        "prompt"
+      ],
+      "violations": 0
+    },
+    "no_writeback_on_doctor_ai": {
+      "patient_context_mutations": 0,
+      "doctor_notes_mutations": 0
+    },
+    "patient_isolation": {
+      "cross_patient_leaks": 0
+    }
+  },
+  "scenarios": [
+    {
+      "id": "E2E-01",
+      "name": "Primary Complete End-to-End Lifecycle",
+      "description": "Nutrition + Mental Wellness -> CCEE -> DB -> First Doctor Context -> Clinician Note Save -> Second Doctor Context (3 sources)",
+      "passed": true
+    },
+    {
+      "id": "E2E-02",
+      "name": "Raw Chat Privacy Audit",
+      "description": "Ensures no conversational turns, messages, or prompt keys exist in database records",
+      "passed": true
+    },
+    {
+      "id": "E2E-03",
+      "name": "Shared Patient ID Multi-Source Integration",
+      "description": "Nutrition and Mental Wellness context items coexist under same patient_id with intact source tags",
+      "passed": true
+    },
+    {
+      "id": "E2E-04",
+      "name": "Longitudinal Update Scenario",
+      "description": "5h -> 7h sleep report supersedes previous active record while preserving historical timeline",
+      "passed": true
+    },
+    {
+      "id": "E2E-05",
+      "name": "Distinct Context Coexistence",
+      "description": "Independent clinical categories remain active without false consolidation",
+      "passed": true
+    },
+    {
+      "id": "E2E-06",
+      "name": "First Doctor Context (Empty Clinician History)",
+      "description": "Returns relevant_clinician_notes = [] safely without error or hallucination",
+      "passed": true
+    },
+    {
+      "id": "E2E-07",
+      "name": "Doctor Response Shape & Diagnostic Boundaries",
+      "description": "Strict assistive JSON with zero diagnostic, prescriptive, or risk scoring fields",
+      "passed": true
+    },
+    {
+      "id": "E2E-08",
+      "name": "Clinician Note Save & Collection Separation",
+      "description": "Saves to doctor_notes with record_type='doctor_confirmed'; patient_context remains unchanged",
+      "passed": true
+    },
+    {
+      "id": "E2E-09",
+      "name": "Human Authoring Boundary & Zero Writeback",
+      "description": "Doctor Context AI execution causes zero database writes across all collections",
+      "passed": true
+    },
+    {
+      "id": "E2E-10",
+      "name": "Patient Isolation End-to-End",
+      "description": "Patient A and Patient B records never cross-contaminate prompts, context, notes, or responses",
+      "passed": true
+    },
+    {
+      "id": "E2E-11",
+      "name": "Source Provenance Isolation",
+      "description": "source tags ('nutrition', 'mental_wellness') remain immutable across queries",
+      "passed": true
+    },
+    {
+      "id": "E2E-12",
+      "name": "Empty Patient End-to-End",
+      "description": "Unknown patient ID processes consultation text without fabricating historical records",
+      "passed": true
+    },
+    {
+      "id": "E2E-13",
+      "name": "Irrelevant Patient Chat",
+      "description": "Non-clinical chit-chat returns status='no_relevant_context' with 0 DB writes and intact conversational reply",
+      "passed": true
+    },
+    {
+      "id": "E2E-14",
+      "name": "CCEE Failure vs Irrelevance",
+      "description": "CCEE timeout/exception returns status='failed' while preserving user chat availability",
+      "passed": true
+    },
+    {
+      "id": "E2E-15",
+      "name": "Database Retrieval Failure (patient_context)",
+      "description": "Controlled HTTP 500 error returned; never masks failure as fake empty context",
+      "passed": true
+    },
+    {
+      "id": "E2E-16",
+      "name": "Database Retrieval Failure (doctor_notes)",
+      "description": "Controlled HTTP 500 error returned; never masks failure as fake empty clinician notes",
+      "passed": true
+    },
+    {
+      "id": "E2E-17",
+      "name": "Database Write Failure (doctor_notes)",
+      "description": "Controlled HTTP 500 error returned on write failure",
+      "passed": true
+    },
+    {
+      "id": "E2E-18",
+      "name": "Gemini LLM Failure Path",
+      "description": "Controlled HTTP 500 error returned on Gemini error; causes 0 DB mutations",
+      "passed": true
+    },
+    {
+      "id": "E2E-19",
+      "name": "Live MongoDB Ping & Collection Health",
+      "description": "Live MongoDB ping verified and required collections confirmed ready",
+      "passed": true
+    }
+  ],
+  "disclaimer": "This document contains system integration and verification evidence only. It does not constitute clinical validation, medical efficacy proof, or diagnostic accuracy certification."
+}
