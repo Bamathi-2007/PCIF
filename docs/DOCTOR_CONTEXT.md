@@ -1,60 +1,68 @@
 # PCIF Doctor-Side Context Assistance Specification
 
-This document details the architecture, boundaries, and evaluation design for the **Doctor-Side Context Assistance Layer** in the **Patient Context Intelligence Framework (PCIF)**.
+This document details the architecture, boundaries, provenance channels, and evaluation design for the **Doctor-Side Context Assistance Layer** in the **Patient Context Intelligence Framework (PCIF)**.
 
 ---
 
 ## 1. Purpose & Scope
 
-The Doctor Context Assistant provides clinician-facing decision support by synthesizing structured patient-reported health context extracted from patient conversations (**Nutrition AI** and **Mental Wellness AI**) with the attending clinician's active consultation notes.
+The Doctor Context Assistant provides clinician-facing decision support by synthesizing three separate evidence streams:
+1. Active Clinician Consultation Notes (`transient`)
+2. Structured Patient-Reported Context (`patient_context`, `patient_reported`)
+3. Clinician-Authored Historical Notes (`doctor_notes`, `doctor_confirmed`)
 
 > [!IMPORTANT]
 > **Clinical Boundary**: The Doctor AI is strictly an assistive context engine. It does **not** diagnose diseases, assign clinical codes, prescribe medications, or replace clinician judgment. The treating physician remains solely responsible for all medical evaluations, diagnoses, and treatment decisions.
 
 ---
 
-## 2. System Architecture & Information Flow
+## 2. System Architecture & Three Provenance Channels
 
 ```text
-Clinician Consultation Notes ────┐
-                                 │
-Active Current Context Profile ──┼──► Doctor Context AI ──► DoctorContextResponse
-(is_current=true)                │    (Google Gemini)      (JSON Schema)
-                                 │
-Longitudinal Context History ────┘
-(Max 20 recent records)
+SOURCE A: Transient Consultation Notes ──────────┐
+                                                 │
+SOURCE B: Patient-Reported Context ──────────────┼──► Doctor Context AI ──► DoctorContextResponse
+  - Active Current Profile (is_current=true)     │    (configured Gemini model) (Structured JSON)
+  - Longitudinal History (Max 20 records)        │
+                                                 │
+SOURCE C: Clinician-Authored Notes History ──────┘
+  (doctor_notes, Max 10 recent notes)
 ```
 
-### Input Sources
+### Three Input Sources
 
-1. **Clinician Consultation Notes** (`consultation`): Transient text input entered by the attending clinician during the visit.
-2. **Active Current Context Profile**: Active context items retrieved via `get_current_patient_context(patient_id)` where `is_current == true`.
-3. **Longitudinal Context History**: Historical timeline records retrieved via `get_patient_context(patient_id)` (capped at a deterministic maximum limit of 20 records).
+1. **Source A: Current Clinician Consultation Notes** (`consultation`): Transient text input entered by the attending clinician during the visit (not automatically persisted, not a confirmed diagnosis).
+2. **Source B: Patient-Reported Structured Context** (`patient_context`):
+   - Active Current Context Profile retrieved via `get_current_patient_context(patient_id)`.
+   - Longitudinal Context History retrieved via `get_patient_context(patient_id)` (capped at a deterministic limit of `MAX_HISTORY_LIMIT = 20` records).
+3. **Source C: Clinician-Authored Historical Notes** (`doctor_notes`):
+   - Notes history retrieved via `get_doctor_notes(patient_id)` (capped at a deterministic limit of `MAX_CLINICIAN_NOTES = 10` most recent notes).
 
 ---
 
 ## 3. Core Safety & Operational Principles
 
-1. **Patient-Reported Provenance**:
-   - All stored context items retain `record_type = "patient_reported"`.
-   - The AI explicitly identifies stored context as patient-reported, avoiding representation as doctor-confirmed findings.
+1. **Strict Provenance Separation**:
+   - Patient-reported records retain `record_type = "patient_reported"`.
+   - Clinician-authored notes retain internal `record_type = "doctor_confirmed"`.
+   - The AI explicitly identifies each source and never silently converts patient-reported facts into clinician-authored findings, or vice versa.
 
-2. **Transient Consultation & Output**:
-   - Clinician consultation notes and generated Doctor AI outputs are transient inputs/outputs for the assistance layer.
-   - Day 12 does **not** persist clinician notes or Doctor AI responses to MongoDB.
+2. **Transient Consultation & Zero Writeback**:
+   - Clinician consultation notes and generated Doctor AI outputs are transient inputs/outputs.
+   - Doctor AI execution causes zero database writes (neither `patient_context` nor `doctor_notes` is modified).
 
 3. **Strict Non-Diagnostic Boundary**:
    - Prohibited outputs: Diagnoses, disease labels, ICD codes, prescription recommendations, medication adjustment suggestions, or automated risk scores.
-   - Permitted outputs: Neutral context summaries ("Relevant prior patient-reported context includes...", "Previously reported...", "Consider verifying...").
+   - Permitted outputs: Neutral context summaries ("Relevant prior patient-reported context includes...", "A prior clinician-authored note recorded...", "Consider verifying...").
 
-4. **Conflict & Discrepancy Flagging**:
-   - If stored context conflicts with current consultation details (e.g. stored sleep = 5 hours/night vs consultation notes sleep = 7 hours/night), the AI surfaces the discrepancy under `items_to_verify` for clinician confirmation.
+4. **Multi-Source Conflict & Discrepancy Flagging**:
+   - If sources conflict (e.g. patient-reported sleep = 5h/night vs clinician-authored note = 7h/night vs current consultation = 6h/night), the AI surfaces the discrepancy under `items_to_verify` for clinician review without silently deciding which source is "correct".
 
 5. **Empty-History Handling**:
-   - If a patient has zero prior stored context, the endpoint executes successfully and returns `"No prior structured patient context is available for this patient."` without fabricating history.
+   - Handles empty states cleanly across all permutations (no clinician notes, no patient context, or completely empty history) without fabricating past records.
 
-6. **Raw Chat Privacy**:
-   - The doctor-side assistant works strictly from structured CCEE context items. Raw chat transcripts are never retrieved, persisted, or required.
+6. **Timestamp Semantics**:
+   - Database records persist `created_at` (or `captured_at` for patient context). In the Doctor AI prompt payload, `saved_at` is a presentation/prompt representation derived from `created_at` and represents PCIF database persistence time only. Timestamps are never interpreted as clinical symptom onset or disease start dates.
 
 ---
 
@@ -75,13 +83,16 @@ Longitudinal Context History ────┘
 {
   "patient_id": "pcif_demo_7b5a8c1d",
   "assistant": {
-    "context_summary": "Patient-reported background includes reduced sleep associated with exam stress and low fluid intake.",
+    "context_summary": "Patient-reported background includes reduced sleep associated with exam stress and low fluid intake. A prior clinician-authored note documented persistent daytime fatigue.",
     "relevant_current_context": [
       "Reduced sleep associated with exam stress (5 hours/night)",
       "Low water intake on college days (1 glass/day)"
     ],
     "relevant_longitudinal_changes": [
       "Reported sleep duration decreased from 7 hours/night to 5 hours/night over past observations."
+    ],
+    "relevant_clinician_notes": [
+      "Reviewed persistent morning fatigue; recommended routine blood work."
     ],
     "items_to_verify": [
       "Verify current daily fluid consumption during college hours.",
@@ -94,91 +105,43 @@ Longitudinal Context History ────┘
 
 ---
 
-## 5. Comparative Evaluation Protocol (Future Research Design)
+## 5. Comparative Evaluation Protocol (Research Design)
 
-Day 12 establishes the **PCIF Condition** for comparative clinical evaluation against a standard baseline:
+By Day 15, PCIF preserves explicit lineage across three distinct information channels:
+1. `CURRENT CONSULTATION`
+2. `PATIENT-REPORTED LONGITUDINAL CONTEXT`
+3. `CLINICIAN-AUTHORED HISTORY`
 
-| Evaluation Condition | Information Available to Doctor AI |
-| :--- | :--- |
-| **Baseline Condition** | Current Consultation Notes ONLY |
-| **PCIF Condition** | Current Consultation Notes + Structured Longitudinal CCEE Context |
+This infrastructure enables future empirical evaluation comparing:
+- **Baseline Condition**: Current Consultation Notes ONLY
+- **PCIF Multi-Source Condition**: Current Consultation Notes + Structured Longitudinal Context + Clinician-Authored Notes
 
 ### Primary Evaluation Metrics
-1. **Contextual Completeness**: Percentage of relevant historical lifestyle/wellness factors identified.
+1. **Contextual Completeness**: Percentage of relevant historical factors identified.
 2. **Omission Rate**: Frequency of missed clinically relevant context.
-3. **Unsupported Inference Rate**: Rate of unwarranted diagnostic claims or hallucinations (Target: 0%).
+3. **Unsupported Inference Rate**: Rate of unwarranted diagnostic claims or unsupported assertions (metric to be measured).
 4. **Summary Usability**: Clinician-rated usefulness of background context summaries.
 
 > [!NOTE]
-> Comparative evaluation experiments will be conducted in subsequent phases. Day 12 establishes the technical infrastructure for the PCIF condition.
+> Formal comparative evaluation experiments will be conducted in subsequent phases. Day 15 establishes the technical integration for multi-source provenance assistance.
 
 ---
 
-## 6. Day 13: Clinician Context Workspace (Frontend Interface)
+## 6. Clinician Context Workspace (Frontend Interface)
 
-Day 13 adds a dedicated, clinician-facing web interface that connects to the Day 12 `POST /api/doctor/context` API.
-
-### Route
-
-The clinician interface is accessible at:
-
-```
-/doctor
-/doctor/
-```
-
-It is **not** linked from the patient-facing application (`/`). Access is direct by URL. The patient UI remains visually and functionally unchanged.
-
-### Input Fields
-
-| Field | Description |
-| :--- | :--- |
-| **Patient ID** | Manually entered patient identifier (e.g. `pcif_demo_7b5a8c1d`). Editing this field immediately clears any previously displayed results to prevent stale-patient display. |
-| **Current Consultation** | Clinician's current consultation notes. Transient — never stored, never persisted to localStorage or sessionStorage. |
-
-### Displayed Output
-
-All four structured fields from `assistant.*` plus `disclaimer` are rendered:
+The clinician interface at `/doctor` renders all structured output sections:
 
 | Section | Source field | Empty state |
 | :--- | :--- | :--- |
-| Context Summary | `assistant.context_summary` | "No summary was returned." |
-| Relevant Current Patient Context | `assistant.relevant_current_context` | "No relevant current patient-reported context was identified for this consultation." |
-| Longitudinal Context | `assistant.relevant_longitudinal_changes` | "No relevant longitudinal changes were identified." |
-| Items to Verify | `assistant.items_to_verify` | "No additional items were identified for verification." |
-| Disclaimer | `disclaimer` | Hidden if not present |
+| **Context Summary** | `assistant.context_summary` | "No summary was returned." |
+| **Relevant Current Patient Context** | `assistant.relevant_current_context` | "No relevant current patient-reported context was identified for this consultation." |
+| **Longitudinal Context** | `assistant.relevant_longitudinal_changes` | "No relevant longitudinal changes were identified." |
+| **Relevant Clinician-Authored History** | `assistant.relevant_clinician_notes` | "No relevant clinician-authored history was identified for this consultation." |
+| **Items to Verify** | `assistant.items_to_verify` | "No additional items were identified for verification." |
+| **Disclaimer** | `disclaimer` | Hidden if not present |
+| **Previous Clinician Notes** | `doctor_notes` collection | "No clinician-authored notes have been saved for this patient." |
 
-### Patient-Reported Provenance
-
-A visible label is always shown alongside results:
-
-> **Patient-reported context:** Information shown here is derived from patient-reported Nutrition and Mental Wellness interactions. These records have not been clinically confirmed by a clinician.
-
-This label ensures the clinician understands the provenance and limits of the displayed context.
-
-### No Authentication (Prototype Limitation)
-
-> [!CAUTION]
-> This interface is a **prototype** and does not currently verify clinician identity or authorize access to patient identifiers. A supporting note is displayed in the UI: *"Prototype identifier only. Verified clinician authentication and patient lookup are not implemented."*
->
-> Clinician authentication, role-based access control, and session management are not implemented in Day 13 and must be addressed before any production deployment.
-
-### No Patient Search
-
-There is no patient directory, patient search, or patient demographics database. The clinician manually enters the patient ID for prototype testing.
-
-### Explicit Doctor-Note Persistence (Day 14)
-
-Day 14 introduces explicit clinician-authored note persistence into the dedicated `doctor_notes` collection (`record_type = "doctor_confirmed"`). Clinician notes are stored separately from CCEE `patient_context` items (`record_type = "patient_reported"`). See [`docs/DOCTOR_NOTES.md`](file:///c:/Users/Bamathi%20G/OneDrive/Desktop/PCIF/docs/DOCTOR_NOTES.md) for complete details.
-
-
-### Error Behaviour
-
-On API or network failure, the interface:
-- Clears any stale patient context result
-- Displays a generic safe message: *"Unable to generate patient context right now. Please try again."*
-- Never exposes stack traces, MongoDB connection details, Gemini errors, or API keys
-
-### Design System
-
-The clinician interface reuses all existing PCIF design tokens: `--bg-page`, `--text-dark`, `--primary-terracotta`, `--font-serif` (Playfair Display), `--font-sans` (Plus Jakarta Sans). No new fonts or design frameworks were introduced.
+### Dual Provenance UI
+- **`PATIENT-REPORTED CONTEXT`**: Highlighted in amber/cream with clear patient-origin disclosure.
+- **`CLINICIAN-AUTHORED NOTES`**: Highlighted in mint/teal with clinician workspace origin disclosure.
+- **Security Notice**: *"The current prototype does not verify clinician identity or authorize access to patient records."*

@@ -563,13 +563,22 @@ export default function DoctorDashboard() {
                 />
               </div>
 
-              {/* 4. Items to Verify */}
+              {/* 4. Relevant Clinician-Authored History (Day 15) */}
+              <div className="dr-card" id="dr-section-clinician-history">
+                <h3 className="dr-section-heading">Relevant Clinician-Authored History</h3>
+                <ContextItemList
+                  items={result.assistant.relevant_clinician_notes}
+                  emptyMessage="No relevant clinician-authored history was identified for this consultation."
+                />
+              </div>
+
+              {/* 5. Items to Verify */}
               <div className="dr-card dr-card-verify" id="dr-section-verify">
                 <h3 className="dr-section-heading">Items to Verify</h3>
                 <VerifyItemList items={result.assistant.items_to_verify} />
               </div>
 
-              {/* 5. Disclaimer */}
+              {/* 6. Disclaimer */}
               {result.disclaimer && (
                 <div className="dr-disclaimer" role="note" id="dr-disclaimer">
                   {result.disclaimer}
@@ -578,6 +587,7 @@ export default function DoctorDashboard() {
 
             </div>
           )}
+
 
           {/* ── Class B: Clinician-Authored Notes (Day 14) ──────────────────── */}
           {(hasLoadedNotes || hasResult) && (

@@ -163,5 +163,6 @@ Retrieves all saved clinician notes for a given patient ID, ordered newest-first
 >
 > 1. **No Clinician Authentication**: The system does not authenticate clinician logins, licence numbers, hospital affiliations, or department roles.
 > 2. **No Role-Based Access Control**: Any user with access to `/doctor` can input patient IDs and save notes in this research prototype.
-> 3. **No Integration with Doctor AI**: Stored doctor notes are not fed into the Doctor Context AI in Day 14.
-> 4. **No Editing / Deleting in UI**: Notes are append-only. Note editing, revision trees, and soft-deletes are not implemented in Day 14.
+> 3. **Doctor Context AI Integration (Day 15)**: Stored clinician notes are retrieved by `DoctorContextService` (capped at 10 most recent notes) to provide context for the Doctor Context AI, while strictly preserving clinician-authored provenance. Doctor AI outputs are never auto-saved into `doctor_notes`.
+> 4. **No Editing / Deleting in UI**: Notes are append-only. Note editing, revision trees, and soft-deletes are not implemented in Day 15.
+

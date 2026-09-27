@@ -35,7 +35,7 @@ class LongitudinalRelationResult(BaseModel):
 class DoctorContextResponseSchema(BaseModel):
     context_summary: str = Field(
         default="",
-        description="Concise background summary synthesizing relevant context with current consultation."
+        description="Concise background summary synthesizing relevant context across provenance sources with current consultation."
     )
     relevant_current_context: List[str] = Field(
         default_factory=list,
@@ -43,12 +43,17 @@ class DoctorContextResponseSchema(BaseModel):
     )
     relevant_longitudinal_changes: List[str] = Field(
         default_factory=list,
-        description="List of relevant longitudinal shifts or trend observations over stored history."
+        description="List of relevant longitudinal shifts or trend observations over stored patient-reported history."
+    )
+    relevant_clinician_notes: List[str] = Field(
+        default_factory=list,
+        description="List of relevant historical clinician-authored notes or findings relevant to this consultation."
     )
     items_to_verify: List[str] = Field(
         default_factory=list,
-        description="List of discrepancies, items needing clinician verification, or important follow-ups."
+        description="List of discrepancies between sources, items needing clinician verification, or important follow-ups."
     )
+
 
 
 class GeminiLLMService:
@@ -333,11 +338,12 @@ class GeminiLLMService:
         patient_id: str,
         consultation: str,
         current_context: List[Dict[str, Any]],
-        longitudinal_history: List[Dict[str, Any]]
+        longitudinal_history: List[Dict[str, Any]],
+        clinician_notes: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         """
-        Generates doctor-facing contextual assistance synthesizing active current profile,
-        longitudinal context history, and current consultation details.
+        Generates doctor-facing contextual assistance synthesizing active current patient-reported profile,
+        longitudinal patient-reported history, clinician-authored notes, and current consultation details.
         """
         client = self._get_client()
         if client is None:
@@ -346,6 +352,7 @@ class GeminiLLMService:
                 "context_summary": "Notice: Gemini API key is not configured. Contextual assistance is unavailable.",
                 "relevant_current_context": [],
                 "relevant_longitudinal_changes": [],
+                "relevant_clinician_notes": [],
                 "items_to_verify": []
             }
 
@@ -383,12 +390,31 @@ class GeminiLLMService:
                 "recorded_at": captured_at_str,
             })
 
+        # Clean clinician-authored notes (exclude raw ObjectIds, internal fields)
+        clean_clinician_notes = []
+        if clinician_notes:
+            for doc in clinician_notes:
+                created_at_val = doc.get("created_at") or doc.get("saved_at")
+                if isinstance(created_at_val, datetime):
+                    saved_at_str = created_at_val.isoformat()
+                else:
+                    saved_at_str = str(created_at_val) if created_at_val else None
+
+                clean_clinician_notes.append({
+                    "note": doc.get("note", ""),
+                    "provenance": "clinician_authored",
+                    "saved_at": saved_at_str,
+                })
+
         prompt = (
             f"PATIENT ID: {patient_id}\n\n"
-            f"CURRENT CLINICIAN CONSULTATION NOTES:\n\"\"\"\n{consultation.strip()}\n\"\"\"\n\n"
-            f"ACTIVE CURRENT PATIENT-REPORTED CONTEXT PROFILE:\n{json.dumps(clean_current, indent=2)}\n\n"
-            f"LONGITUDINAL PATIENT-REPORTED CONTEXT HISTORY:\n{json.dumps(clean_history, indent=2)}\n\n"
-            "Analyze the above input according to your system instructions. "
+            f"[SOURCE A: CURRENT CLINICIAN CONSULTATION NOTES]\n\"\"\"\n{consultation.strip()}\n\"\"\"\n\n"
+            f"[SOURCE B: PATIENT-REPORTED CONTEXT]\n"
+            f"Active Current Patient-Reported Profile:\n{json.dumps(clean_current, indent=2)}\n\n"
+            f"Longitudinal Patient-Reported History:\n{json.dumps(clean_history, indent=2)}\n\n"
+            f"[SOURCE C: CLINICIAN-AUTHORED HISTORICAL NOTES]\n"
+            f"Clinician-Authored Notes History:\n{json.dumps(clean_clinician_notes, indent=2)}\n\n"
+            "Analyze the above three sources according to your system instructions. "
             "Synthesize relevant background context with the consultation notes and return a structured DoctorContextResponse JSON."
         )
 
@@ -414,6 +440,7 @@ class GeminiLLMService:
                 "context_summary": data.get("context_summary", ""),
                 "relevant_current_context": data.get("relevant_current_context", []),
                 "relevant_longitudinal_changes": data.get("relevant_longitudinal_changes", []),
+                "relevant_clinician_notes": data.get("relevant_clinician_notes", []),
                 "items_to_verify": data.get("items_to_verify", []),
             }
 
@@ -426,5 +453,6 @@ class GeminiLLMService:
 
 
 llm_service = GeminiLLMService()
+
 
 
