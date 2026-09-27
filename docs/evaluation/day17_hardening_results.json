@@ -1,0 +1,107 @@
+{
+  "day": 17,
+  "scope": "prototype_hardening",
+  "synthetic_only": true,
+  "architecture_frozen": true,
+  "timestamp": "2026-09-27T15:34:45Z",
+  "freeze_readiness": "YES",
+  "execution_summary": {
+    "total_hardening_tests": 17,
+    "hardening_tests_passed": 17,
+    "total_backend_regression_tests": 114,
+    "backend_regression_passed": 114,
+    "frontend_build_status": "success"
+  },
+  "defects_discovered_and_fixed": [
+    {
+      "id": "DEF-01",
+      "severity": "LOW",
+      "component": "backend/app/services/llm_service.py",
+      "description": "CCEE error parsing log logged raw response string, presenting potential privacy leak risk during malformed JSON parsing.",
+      "fix": "Sanitized error log and exception message to omit raw text payload.",
+      "verification": "test_day17_hardening.py passed."
+    },
+    {
+      "id": "DEF-02",
+      "severity": "MEDIUM",
+      "component": "frontend/src/components/DoctorDashboard.jsx",
+      "description": "Async context generation and note fetch lacked request-identity and patient-identity guard, presenting a risk of stale Patient A data rendering if user switched to Patient B while a request was in flight.",
+      "fix": "Introduced activeRequestIdRef and activePatientIdRef guards across handleGenerate, fetchDoctorNotes, and handleSaveNote.",
+      "verification": "frontend build succeeded; stale responses verified discarded."
+    },
+    {
+      "id": "DEF-03",
+      "severity": "MEDIUM",
+      "component": "backend/app/prompts.py",
+      "description": "Patient conversational assistants lacked an explicit conversation closure and data minimization policy, occasionally prompting open-ended follow-up questioning after user concerns were already addressed.",
+      "fix": "Added DATA MINIMIZATION & CONVERSATION CLOSURE POLICY to NUTRITION_SYSTEM_INSTRUCTION and MENTAL_WELLNESS_SYSTEM_INSTRUCTION with safety crisis exceptions.",
+      "verification": "test_07 through test_11 in test_day17_hardening.py passed."
+    }
+  ],
+  "checks": [
+    {
+      "check": "Malformed Requests Validation",
+      "status": "PASSED",
+      "detail": "Controlled 422 responses on empty, null, whitespace, or invalid types."
+    },
+    {
+      "check": "Extreme Input Length Handling",
+      "status": "PASSED",
+      "detail": "Handled up to 14 KB inputs without memory corruption, crash, or unbounded logs."
+    },
+    {
+      "check": "Whitespace & Identifier Normalization",
+      "status": "PASSED",
+      "detail": "Trimmed patient IDs and cleaned whitespace consistently across storage and API."
+    },
+    {
+      "check": "Unicode / Multilingual Encoding",
+      "status": "PASSED",
+      "detail": "Tamil, accented Latin, emoji, and special characters preserved accurately."
+    },
+    {
+      "check": "Patient AI Data Minimization & Closure",
+      "status": "PASSED",
+      "detail": "Natural conversational conclusion; maximum 1 targeted follow-up; crisis escalation preserved."
+    },
+    {
+      "check": "Duplicate Submissions & Append-Only Storage",
+      "status": "PASSED",
+      "detail": "Doctor Context causes 0 writes on repeated clicks; Doctor Notes append-only."
+    },
+    {
+      "check": "HTTP Method Safety",
+      "status": "PASSED",
+      "detail": "Unsupported HTTP verbs return 405 Method Not Allowed without state mutation."
+    },
+    {
+      "check": "Concurrent / Interleaved Patient Isolation",
+      "status": "PASSED",
+      "detail": "Stateless service and repositories maintain strict isolation under interleaved execution."
+    },
+    {
+      "check": "Secret & Configuration Audit",
+      "status": "PASSED",
+      "detail": ".env is gitignored, .env.example contains only placeholders, 0 committed keys."
+    },
+    {
+      "check": "Database & Index Audit",
+      "status": "PASSED",
+      "detail": "Compound indexes verified for patient_context and doctor_notes; controlled 500 on DB failure."
+    },
+    {
+      "check": "Zero Writeback on Doctor AI",
+      "status": "PASSED",
+      "detail": "Zero database mutations occur upon executing Doctor Context AI assistance."
+    }
+  ],
+  "known_prototype_limitations": [
+    "No clinician or patient authentication / RBAC.",
+    "Patient ID is a prototype session identifier.",
+    "No EHR / FHIR integration.",
+    "No clinician identity verification.",
+    "Timestamps represent PCIF database persistence time.",
+    "Deterministic context (20) and notes (10) caps.",
+    "No clinical validation or diagnostic certification."
+  ]
+}

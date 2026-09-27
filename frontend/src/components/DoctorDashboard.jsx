@@ -10,7 +10,7 @@
  *  - Append-only doctor_notes persistence; no CCEE or Day 11 consolidation.
  *  - Security Note: The current prototype does not verify clinician identity or authorize access to patient records.
  */
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   AlertCircle,
   Stethoscope,
@@ -137,15 +137,23 @@ export default function DoctorDashboard() {
   const [saveError, setSaveError]               = useState(null);
   const [noteValidationError, setNoteValidationError] = useState(null);
 
+  // Stale-response & Race-condition guards (Day 17 Hardening)
+  const activeRequestIdRef = useRef(0);
+  const activePatientIdRef = useRef(patientId);
+
   /* ── Fetch Doctor Notes ───────────────────────────────────────────────── */
   const fetchDoctorNotes = useCallback(async (pid) => {
     if (!pid || !pid.trim()) return;
+    const cleanPid = pid.trim();
     try {
-      const response = await fetch(`/api/doctor/notes/${encodeURIComponent(pid.trim())}`);
+      const response = await fetch(`/api/doctor/notes/${encodeURIComponent(cleanPid)}`);
       if (response.ok) {
         const data = await response.json();
-        setDoctorNotes(data.notes || []);
-        setHasLoadedNotes(true);
+        // Discard stale response if active patient changed while fetch was in flight
+        if (activePatientIdRef.current.trim() === cleanPid) {
+          setDoctorNotes(data.notes || []);
+          setHasLoadedNotes(true);
+        }
       }
     } catch (err) {
       console.error("[PCIF Doctor] Failed to fetch clinician notes:", err);
@@ -160,6 +168,8 @@ export default function DoctorDashboard() {
     (e) => {
       const newPid = e.target.value;
       setPatientId(newPid);
+      activePatientIdRef.current = newPid;
+      activeRequestIdRef.current += 1; // Invalidate any in-flight requests
 
       // Immediately clear all previous patient data
       setResult(null);
@@ -223,6 +233,7 @@ export default function DoctorDashboard() {
     setIsLoading(true);
 
     const cleanPid = patientId.trim();
+    const currentReqId = ++activeRequestIdRef.current;
 
     try {
       const response = await fetch("/api/doctor/context", {
@@ -239,17 +250,36 @@ export default function DoctorDashboard() {
       }
 
       const data = await response.json();
+
+      // Guard: Discard response if patient was switched or a newer request was issued
+      if (
+        activeRequestIdRef.current !== currentReqId ||
+        activePatientIdRef.current.trim() !== cleanPid
+      ) {
+        return;
+      }
+
       setResult(data);
 
       // On successful context generation, also retrieve clinician-authored notes
       await fetchDoctorNotes(cleanPid);
     } catch (err) {
       console.error("[PCIF Doctor] Context generation failed:", err);
-      // On failure: clear stale result, show safe generic error only
-      setResult(null);
-      setError("Unable to generate patient context right now. Please try again.");
+      // Guard: do not overwrite newer patient state on error
+      if (
+        activeRequestIdRef.current === currentReqId &&
+        activePatientIdRef.current.trim() === cleanPid
+      ) {
+        setResult(null);
+        setError("Unable to generate patient context right now. Please try again.");
+      }
     } finally {
-      setIsLoading(false);
+      if (
+        activeRequestIdRef.current === currentReqId &&
+        activePatientIdRef.current.trim() === cleanPid
+      ) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -286,20 +316,21 @@ export default function DoctorDashboard() {
         throw new Error(`Server returned HTTP ${response.status}`);
       }
 
-      // Success handling:
-      // 1. Show confirmation
-      setSaveStatus("Clinician note saved.");
-      // 2. Clear note textarea
-      setClinicianNote("");
-      // 3. Refresh previous clinician notes
-      await fetchDoctorNotes(cleanPid);
-      // (Current Doctor Context AI result is preserved; not regenerated)
+      // Guard: only update UI if patient hasn't changed
+      if (activePatientIdRef.current.trim() === cleanPid) {
+        setSaveStatus("Clinician note saved.");
+        setClinicianNote("");
+        await fetchDoctorNotes(cleanPid);
+      }
     } catch (err) {
       console.error("[PCIF Doctor] Save clinician note failed:", err);
-      // On failure: KEEP the unsaved clinician text, show safe error message
-      setSaveError("Unable to save the clinician note right now. Please try again.");
+      if (activePatientIdRef.current.trim() === cleanPid) {
+        setSaveError("Unable to save the clinician note right now. Please try again.");
+      }
     } finally {
-      setIsSavingNote(false);
+      if (activePatientIdRef.current.trim() === cleanPid) {
+        setIsSavingNote(false);
+      }
     }
   };
 

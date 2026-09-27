@@ -238,8 +238,8 @@ class GeminiLLMService:
             data = json.loads(raw_text)
 
             if not isinstance(data, dict) or "items" not in data or not isinstance(data.get("items"), list):
-                logger.error(f"Malformed CCEE response structure: {raw_text}")
-                raise RuntimeError(f"CCEE extraction failed: Malformed top-level JSON response structure: {raw_text}")
+                logger.error("Malformed CCEE response structure: missing or invalid 'items' list.")
+                raise RuntimeError("CCEE extraction failed: Malformed top-level JSON response structure (missing 'items' list).")
 
             raw_items = data["items"]
 
