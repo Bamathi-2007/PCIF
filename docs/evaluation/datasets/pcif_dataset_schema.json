@@ -1,0 +1,337 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://pcif.local/schemas/pcif_evaluation_dataset.json",
+  "title": "PCIFEvaluationDatasetSchema",
+  "description": "Formal schema for synthetic evaluation scenarios in the Patient Context Intelligence Framework (PCIF). Used for evaluating multi-source contextual assistance against current consultation baseline.",
+  "type": "object",
+  "required": [
+    "scenario_id",
+    "split",
+    "domain",
+    "difficulty",
+    "current_consultation",
+    "patient_reported_current_context",
+    "patient_reported_longitudinal_history",
+    "clinician_authored_history",
+    "gold_evidence"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "scenario_id": {
+      "type": "string",
+      "pattern": "^SCN-(PILOT|FINAL)-[0-9]{3,}$",
+      "description": "Unique scenario identifier (e.g., SCN-PILOT-001, SCN-FINAL-042)."
+    },
+    "split": {
+      "type": "string",
+      "enum": ["pilot", "final"],
+      "description": "Dataset split. 'pilot' is for debugging evaluation tooling; 'final' is locked for frozen comparative evaluation."
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "nutrition",
+        "mental_wellness",
+        "mixed_context",
+        "longitudinal_change",
+        "conflicting_information",
+        "irrelevant_history",
+        "sparse_history",
+        "no_history",
+        "provenance_sensitive"
+      ],
+      "description": "Scenario family / domain category."
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "medium", "hard"],
+      "description": "Contextual reasoning complexity level (easy: small obvious facts; medium: multiple facts with distractors; hard: temporal shifts, cross-source provenance, conflicts)."
+    },
+    "current_consultation": {
+      "type": "object",
+      "required": ["text"],
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Transient clinician-entered consultation text (SOURCE A). Not a doctor-confirmed diagnosis."
+        },
+        "fact_units": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConsultationFactUnit"
+          },
+          "description": "Evaluation-only fact units for the current consultation (Q1, Q2, etc.). Never injected into model prompts."
+        }
+      }
+    },
+    "patient_reported_current_context": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/PatientReportedContextItem"
+      },
+      "description": "Active patient-reported context items (SOURCE B active profile). Compatible with CCEE schema + evaluation fact_id."
+    },
+    "patient_reported_longitudinal_history": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/PatientReportedLongitudinalItem"
+      },
+      "description": "Prior patient-reported context observations (SOURCE B longitudinal history)."
+    },
+    "clinician_authored_history": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ClinicianAuthoredNoteItem"
+      },
+      "description": "Clinician-authored historical notes (SOURCE C). Explicitly authored notes with doctor_confirmed provenance."
+    },
+    "gold_evidence": {
+      "type": "object",
+      "required": [
+        "relevant_fact_ids",
+        "irrelevant_fact_ids",
+        "conflict_groups",
+        "expected_provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "relevant_fact_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of historical fact IDs (F1, F2...) that are clinically/contextually relevant to the current consultation."
+        },
+        "irrelevant_fact_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of historical distractor fact IDs (F1, F2...) that should not be prioritized or surfaced as relevant context."
+        },
+        "conflict_groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConflictGroup"
+          },
+          "description": "Explicit conflicting evidence groups to be surfaced for clinician verification (may include Q and F fact IDs)."
+        },
+        "expected_provenance": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["current_consultation", "patient_reported", "clinician_authored"]
+          },
+          "description": "Mapping from fact_id to expected provenance classification ('current_consultation', 'patient_reported', or 'clinician_authored')."
+        }
+      }
+    },
+    "notes_for_evaluator": {
+      "type": "string",
+      "description": "Optional evaluator guidelines, scenario context rationale, or test notes."
+    }
+  },
+  "definitions": {
+    "ConsultationFactUnit": {
+      "type": "object",
+      "required": ["fact_id", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "fact_id": {
+          "type": "string",
+          "pattern": "^Q[0-9]+$",
+          "description": "Evaluation-only fact identifier within the current consultation (e.g., Q1, Q2)."
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Atomic factual statement or mention within the current consultation text."
+        }
+      }
+    },
+    "PatientReportedContextItem": {
+      "type": "object",
+      "required": [
+        "fact_id",
+        "category",
+        "summary",
+        "source",
+        "record_type"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fact_id": {
+          "type": "string",
+          "pattern": "^F[0-9]+$",
+          "description": "Stable local fact identifier within the historical context (e.g., F1, F2)."
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "nutrition",
+            "sleep",
+            "stress",
+            "mood",
+            "hydration",
+            "appetite",
+            "activity",
+            "symptom",
+            "habit",
+            "lifestyle_change",
+            "other_clinically_relevant_context"
+          ],
+          "description": "Clinical context category from the 11 frozen CCEE categories."
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Compressed clinical summary of the patient-reported observation."
+        },
+        "source": {
+          "type": "string",
+          "enum": ["nutrition", "mental_wellness"],
+          "description": "Originating conversational agent source."
+        },
+        "record_type": {
+          "type": "string",
+          "enum": ["patient_reported"],
+          "description": "Verification classification; strictly 'patient_reported' for patient interactions."
+        },
+        "value": {
+          "type": "string",
+          "description": "Optional quantitative or qualitative metric (e.g., '5 hours/night')."
+        },
+        "duration": {
+          "type": "string",
+          "description": "Optional reported duration or timeframe (e.g., '1 week')."
+        }
+      }
+    },
+    "PatientReportedLongitudinalItem": {
+      "type": "object",
+      "required": [
+        "fact_id",
+        "category",
+        "summary",
+        "source",
+        "record_type"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fact_id": {
+          "type": "string",
+          "pattern": "^F[0-9]+$",
+          "description": "Stable local fact identifier within the historical context (e.g., F1, F2)."
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "nutrition",
+            "sleep",
+            "stress",
+            "mood",
+            "hydration",
+            "appetite",
+            "activity",
+            "symptom",
+            "habit",
+            "lifestyle_change",
+            "other_clinically_relevant_context"
+          ],
+          "description": "Clinical context category from the 11 frozen CCEE categories."
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Compressed clinical summary of the prior observation."
+        },
+        "source": {
+          "type": "string",
+          "enum": ["nutrition", "mental_wellness"],
+          "description": "Originating conversational agent source."
+        },
+        "record_type": {
+          "type": "string",
+          "enum": ["patient_reported"],
+          "description": "Verification classification; strictly 'patient_reported'."
+        },
+        "value": {
+          "type": "string",
+          "description": "Optional quantitative or qualitative metric."
+        },
+        "duration": {
+          "type": "string",
+          "description": "Optional reported duration or timeframe."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["historical", "current", "superseded"],
+          "description": "Optional dataset-only longitudinal status annotation (does not alter runtime CCEE schema)."
+        },
+        "observed_period": {
+          "type": "string",
+          "description": "Optional dataset-only temporal marker (e.g., '2 weeks ago', 'prior baseline')."
+        }
+      }
+    },
+    "ClinicianAuthoredNoteItem": {
+      "type": "object",
+      "required": [
+        "fact_id",
+        "note",
+        "record_type"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fact_id": {
+          "type": "string",
+          "pattern": "^F[0-9]+$",
+          "description": "Stable local fact identifier within the historical context (e.g., F1, F2)."
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Clinician-authored note text."
+        },
+        "record_type": {
+          "type": "string",
+          "enum": ["doctor_confirmed"],
+          "description": "Internal PCIF provenance tag; strictly 'doctor_confirmed'."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Optional evaluation timestamp annotation (e.g., '2026-09-20T10:00:00Z')."
+        }
+      }
+    },
+    "ConflictGroup": {
+      "type": "object",
+      "required": [
+        "conflict_id",
+        "fact_ids",
+        "expected_behavior"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "conflict_id": {
+          "type": "string",
+          "pattern": "^C[0-9]+$",
+          "description": "Identifier for the conflict group (e.g., C1, C2)."
+        },
+        "fact_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2,
+          "description": "Fact IDs (Q and/or F IDs) involved in this discrepancy/conflict."
+        },
+        "expected_behavior": {
+          "type": "string",
+          "enum": ["surface_for_verification"],
+          "description": "Expected AI system behavior; must preserve all facts and surface discrepancy for verification."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional evaluator description of the discrepancy."
+        }
+      }
+    }
+  }
+}
