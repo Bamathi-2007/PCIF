@@ -4,10 +4,16 @@ Loads configuration values from environment variables or defaults.
 """
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Load .env file if available
-load_dotenv()
+# Load .env file from backend directory or current working directory
+_env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+if _env_path.exists():
+    load_dotenv(dotenv_path=_env_path)
+else:
+    load_dotenv()
+
 
 
 class Settings:

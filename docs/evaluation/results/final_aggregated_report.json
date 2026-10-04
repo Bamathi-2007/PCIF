@@ -1,0 +1,409 @@
+{
+  "scored_output_path": "docs\\evaluation\\results\\final_scored_results.jsonl",
+  "total_scored_outputs": 400,
+  "summary_by_condition": {
+    "baseline": {
+      "scenario_count": 200,
+      "relevant_historical_recall": null,
+      "omission_rate": null,
+      "irrelevant_inclusion_rate": null,
+      "conflict_surfacing_rate": null,
+      "unsupported_inference_rate": 0.15634523809523804,
+      "provenance_accuracy": 0.9958333333333335,
+      "provenance_explicitness_rate": 1.0,
+      "current_consultation_accuracy": 0.9958333333333335,
+      "patient_reported_accuracy": null,
+      "clinician_authored_accuracy": null
+    },
+    "pcif": {
+      "scenario_count": 200,
+      "relevant_historical_recall": 0.990451388888889,
+      "omission_rate": 0.009548611111111112,
+      "irrelevant_inclusion_rate": 0.35714285714285715,
+      "conflict_surfacing_rate": 0.96,
+      "unsupported_inference_rate": 0.035162698412698416,
+      "provenance_accuracy": 0.974172619047619,
+      "provenance_explicitness_rate": 0.9979861111111111,
+      "current_consultation_accuracy": 1.0,
+      "patient_reported_accuracy": 0.8904109589041096,
+      "clinician_authored_accuracy": 1.0
+    }
+  },
+  "provenance_breakdown": {
+    "baseline": {
+      "correct": 859,
+      "incorrect": 3,
+      "not_explicit": 0,
+      "not_applicable": 302
+    },
+    "pcif": {
+      "correct": 1143,
+      "incorrect": 38,
+      "not_explicit": 3,
+      "not_applicable": 57
+    }
+  },
+  "channel_breakdowns": {
+    "baseline": {
+      "current_consultation": {
+        "correct": 859,
+        "incorrect": 3
+      },
+      "patient_reported": {
+        "correct": 0,
+        "incorrect": 0
+      },
+      "clinician_authored": {
+        "correct": 0,
+        "incorrect": 0
+      }
+    },
+    "pcif": {
+      "current_consultation": {
+        "correct": 757,
+        "incorrect": 0
+      },
+      "patient_reported": {
+        "correct": 234,
+        "incorrect": 38
+      },
+      "clinician_authored": {
+        "correct": 152,
+        "incorrect": 0
+      }
+    }
+  },
+  "by_difficulty": {
+    "easy": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.15661904761904763,
+        "provenance_accuracy": 1.0,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 0.9782608695652174,
+        "omission_rate": 0.021739130434782608,
+        "irrelevant_inclusion_rate": 0.4,
+        "conflict_surfacing_rate": 0.8,
+        "unsupported_inference_rate": 0.04719047619047619,
+        "provenance_accuracy": 1.0,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 1.0,
+        "clinician_authored_accuracy": 1.0
+      }
+    },
+    "medium": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.14835714285714283,
+        "provenance_accuracy": 0.9966666666666666,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 0.9966666666666666,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 0.9965277777777777,
+        "omission_rate": 0.0034722222222222225,
+        "irrelevant_inclusion_rate": 0.4,
+        "conflict_surfacing_rate": 1.0,
+        "unsupported_inference_rate": 0.033357142857142856,
+        "provenance_accuracy": 0.9746865079365078,
+        "provenance_explicitness_rate": 0.9970833333333333,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 0.8848039215686273,
+        "clinician_authored_accuracy": 1.0
+      }
+    },
+    "hard": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.17204761904761903,
+        "provenance_accuracy": 0.9900000000000001,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 0.9900000000000001,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 0.99,
+        "omission_rate": 0.01,
+        "irrelevant_inclusion_rate": 0.25,
+        "conflict_surfacing_rate": 1.0,
+        "unsupported_inference_rate": 0.026746031746031754,
+        "provenance_accuracy": 0.9473174603174604,
+        "provenance_explicitness_rate": 0.9977777777777778,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 0.8143939393939393,
+        "clinician_authored_accuracy": 1.0
+      }
+    }
+  },
+  "by_domain": {
+    "conflicting_information": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.09066666666666666,
+        "provenance_accuracy": 1.0,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 1.0,
+        "omission_rate": 0.0,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": 0.96,
+        "unsupported_inference_rate": 0.012444444444444445,
+        "provenance_accuracy": 0.9627777777777778,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 0.7797619047619049,
+        "clinician_authored_accuracy": 1.0
+      }
+    },
+    "irrelevant_history": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.27964285714285714,
+        "provenance_accuracy": 1.0,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 1.0,
+        "omission_rate": 0.0,
+        "irrelevant_inclusion_rate": 0.325,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.03472222222222222,
+        "provenance_accuracy": 0.9775,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 0.9038461538461539,
+        "clinician_authored_accuracy": 1.0
+      }
+    },
+    "longitudinal_change": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.12289682539682541,
+        "provenance_accuracy": 0.9777777777777779,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 0.9777777777777779,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 0.9388888888888889,
+        "omission_rate": 0.061111111111111116,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.024854497354497355,
+        "provenance_accuracy": 0.9556216931216931,
+        "provenance_explicitness_rate": 0.9958333333333333,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 0.8805555555555556,
+        "clinician_authored_accuracy": 1.0
+      }
+    },
+    "mental_wellness": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.1419047619047619,
+        "provenance_accuracy": 1.0,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 1.0,
+        "omission_rate": 0.0,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.02611111111111111,
+        "provenance_accuracy": 0.9812962962962963,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 0.9230769230769231,
+        "clinician_authored_accuracy": 1.0
+      }
+    },
+    "mixed_context": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.14218253968253966,
+        "provenance_accuracy": 1.0,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 1.0,
+        "omission_rate": 0.0,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.02115079365079365,
+        "provenance_accuracy": 0.9826058201058202,
+        "provenance_explicitness_rate": 0.9907407407407408,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 0.9021739130434783,
+        "clinician_authored_accuracy": 1.0
+      }
+    },
+    "no_history": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.13660714285714287,
+        "provenance_accuracy": 1.0,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.13660714285714287,
+        "provenance_accuracy": 1.0,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      }
+    },
+    "nutrition": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.1966269841269841,
+        "provenance_accuracy": 1.0,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 1.0,
+        "omission_rate": 0.0,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.055873015873015866,
+        "provenance_accuracy": 0.9672751322751324,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 0.8913043478260868,
+        "clinician_authored_accuracy": 1.0
+      }
+    },
+    "provenance_sensitive": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.18650793650793648,
+        "provenance_accuracy": 0.9888888888888889,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 0.9888888888888889,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 1.0,
+        "omission_rate": 0.0,
+        "irrelevant_inclusion_rate": 1.0,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.01851851851851852,
+        "provenance_accuracy": 0.9851851851851853,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 0.9696969696969698,
+        "clinician_authored_accuracy": 1.0
+      }
+    },
+    "sparse_history": {
+      "baseline": {
+        "relevant_historical_recall": null,
+        "omission_rate": null,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.11755952380952382,
+        "provenance_accuracy": 1.0,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": null,
+        "clinician_authored_accuracy": null
+      },
+      "pcif": {
+        "relevant_historical_recall": 1.0,
+        "omission_rate": 0.0,
+        "irrelevant_inclusion_rate": null,
+        "conflict_surfacing_rate": null,
+        "unsupported_inference_rate": 0.06805555555555555,
+        "provenance_accuracy": 0.9861111111111112,
+        "provenance_explicitness_rate": 1.0,
+        "current_consultation_accuracy": 1.0,
+        "patient_reported_accuracy": 0.8333333333333334,
+        "clinician_authored_accuracy": 1.0
+      }
+    }
+  },
+  "conflict_analysis": {
+    "total_gold_conflict_scenarios": 25,
+    "baseline_evaluable_conflict_scenarios": 0,
+    "pcif_evaluable_conflict_scenarios": 25,
+    "baseline_conflict_surfacing_rate": null,
+    "pcif_conflict_surfacing_rate": 0.96
+  },
+  "factual_claims_audit": {
+    "total_claims_produced": {
+      "baseline": 1164,
+      "pcif": 1241
+    },
+    "unsupported_claims_count": {
+      "baseline": 180,
+      "pcif": 42
+    }
+  }
+}
